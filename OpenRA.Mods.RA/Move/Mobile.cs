@@ -284,7 +284,7 @@ namespace OpenRA.Mods.RA.Move
 			decimal speed = Info.Speed * Info.TerrainSpeeds[type].Speed;
 			foreach( var t in self.TraitsImplementing<ISpeedModifier>() )
 				speed *= t.GetSpeedModifier();
-			return (int)(speed / 100);
+			return Math.Max( 1, (int)( speed / 100 ) );
 		}
 		
 		public void AddInfluence()
