@@ -156,7 +156,7 @@ namespace OpenRA
 
 		void DrawShroud( WorldRenderer wr, int minx, int miny, int maxx, int maxy, Sprite[,] s, string pal )
 		{
-			var shroudPalette = wr.GetPaletteIndex(pal);
+			var shroudPalette = wr.GetPaletteIndex(pal, null);
 
 			for (var j = miny; j < maxy; j++)
 			{

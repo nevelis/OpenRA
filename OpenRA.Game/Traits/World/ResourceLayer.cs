@@ -36,7 +36,7 @@ namespace OpenRA.Traits
 			var maxy = cliprect.Bottom;
 
 			foreach( var rt in world.WorldActor.TraitsImplementing<ResourceType>() )
-				rt.info.PaletteIndex = wr.GetPaletteIndex(rt.info.Palette);
+				rt.info.PaletteIndex = wr.GetPaletteIndex(rt.info.Palette, null);
 
 			ShroudRenderer shroud = null;
 			if( world.LocalPlayer != null )

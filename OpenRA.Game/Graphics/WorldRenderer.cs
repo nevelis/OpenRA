@@ -36,7 +36,7 @@ namespace OpenRA.Graphics
 				pal.Trait.InitPalette( this );
 		}
 		
-		public int GetPaletteIndex(string name) { return palette.GetPaletteIndex(name); }
+		public int GetPaletteIndex(string name, int? playerIndex) { return palette.GetPaletteIndex(name, playerIndex); }
 		public Palette GetPalette(string name) { return palette.GetPalette(name); }
 		public void AddPalette(string name, Palette pal) { palette.AddPalette(name, pal); }
 		
@@ -100,8 +100,11 @@ namespace OpenRA.Graphics
 			if (world.OrderGenerator != null)
 				world.OrderGenerator.RenderBeforeWorld(this, world);
 
-            foreach (var image in SpritesToRender() )
-                image.Sprite.DrawAt(image.Pos, this.GetPaletteIndex(image.Palette), image.Scale);
+			foreach( var image in SpritesToRender() )
+			{
+				var paletteIndex = this.GetPaletteIndex( image.Palette ?? "player", image.PalettePlayer );
+				image.Sprite.DrawAt( image.Pos, paletteIndex, image.Scale );
+			}
 		    uiOverlay.Draw(this, world);
 
 			// added for contrails

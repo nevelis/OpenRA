@@ -42,8 +42,8 @@ namespace OpenRA.Mods.RA.Effects
 		public IEnumerable<Renderable> Render()
 		{
 			if (a.IsInWorld)
-				yield return new Renderable(anim.Image,
-					a.CenterLocation - .5f * anim.Image.size + offset, "effect", (int)a.CenterLocation.Y);
+				yield return Renderable.Centered(anim.Image,
+					a.CenterLocation + offset, "effect", null, (int)a.CenterLocation.Y);
 		}
 	}
 }

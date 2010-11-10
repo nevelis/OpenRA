@@ -27,7 +27,6 @@ namespace OpenRA
 		public int Deaths;
 		public WinState WinState = WinState.Undefined;
 
-		public readonly string Palette;
 		public readonly Color Color;
 		public readonly Color Color2;
 
@@ -49,7 +48,6 @@ namespace OpenRA
 			Shroud = new ShroudRenderer(this, world.Map);
 
 			Index = index;
-			Palette = "player" + index;
 
 			Color = pr.Color;
 			Color2 = pr.Color2;
@@ -72,7 +70,6 @@ namespace OpenRA
 			Shroud = new ShroudRenderer(this, world.Map);
 
 			Index = index;
-			Palette = "player" + index;
 			Color = client.Color1;
 			Color2 = client.Color2;
 			PlayerName = client.Name;

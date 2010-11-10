@@ -34,9 +34,8 @@ namespace OpenRA.Mods.RA.Effects
 
 		public IEnumerable<Renderable> Render()
 		{
-			yield return new Renderable(anim.Image, 
-				pos - .5f * anim.Image.size - new int2(0,altitude), 
-				"effect", (int)pos.Y - altitude);
+			yield return Renderable.Centered(anim.Image, pos - new int2(0,altitude),
+				"effect", null, (int)pos.Y - altitude);
 		}
 
 		public Player Owner { get { return null; } }

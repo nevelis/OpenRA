@@ -35,7 +35,7 @@ namespace OpenRA.Mods.RA.Effects
 
 		public IEnumerable<Renderable> Render()
 		{
-			yield return new Renderable(anim.Image, pos - .5f * anim.Image.size, owner.Palette, (int)pos.Y);
+			yield return new Renderable(anim.Image, pos - .5f * anim.Image.size, null, owner.Index, (int)pos.Y, 0, 1f);
 		}
 	}
 }

@@ -41,9 +41,11 @@ namespace OpenRA.Graphics
 			return ret;
 		}
 
-		public int GetPaletteIndex(string name)
+		public int GetPaletteIndex(string name, int? playerIndex)
 		{
 			int ret;
+			if (playerIndex != null && indices.TryGetValue(name + playerIndex, out ret))
+				return ret;
 			if (!indices.TryGetValue(name,out ret))
 				throw new InvalidOperationException("Palette `{0}` does not exist".F(name));
 			return ret;
