@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using OpenRA.Graphics;
+using OpenRA.FileFormats;
 
 namespace OpenRA.Traits
 {
@@ -20,6 +21,7 @@ namespace OpenRA.Traits
 		public readonly string[] OverrideTheater = null;
 		public readonly string[] OverrideImage = null;
 		public readonly string Palette = null;
+
 		public abstract object Create(ActorInitializer init);
 	}
 
@@ -27,6 +29,7 @@ namespace OpenRA.Traits
 	{
 		public Dictionary<string, AnimationWithOffset> anims = new Dictionary<string, AnimationWithOffset>();
 		public Animation anim { get { return anims[""].Animation; } protected set { anims[""].Animation = value; } }
+		readonly PaletteRef palette;
 
 		string cachedImage = null;
 		public string GetImage(Actor self)
@@ -45,12 +48,12 @@ namespace OpenRA.Traits
 
 		public RenderSimple(Actor self, Func<int> baseFacing)
 		{
+			palette = PaletteRef.Get( self.Info.Traits.Get<RenderSimpleInfo>().Palette );
 			anims.Add( "", new Animation( GetImage(self), baseFacing ) );
 		}
 
 		public virtual IEnumerable<Renderable> Render( Actor self )
 		{
-			var palette = self.Info.Traits.Get<RenderSimpleInfo>().Palette;
 			foreach( var a in anims.Values )
 				if( a.DisableFunc == null || !a.DisableFunc() )
 					yield return ( palette == null ) ? a.Image( self ) : a.Image( self ).WithPalette(palette);

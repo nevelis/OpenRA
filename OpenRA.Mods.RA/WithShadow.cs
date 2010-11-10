@@ -22,7 +22,7 @@ namespace OpenRA.Mods.RA
 		{
 			var move = self.Trait<IMove>();
 
-			var shadowSprites = r.Select(a => a.WithPalette("shadow"));
+			var shadowSprites = r.Select(a => a.WithPalette(PaletteRef.Shadow));
 			var flyingSprites = (move.Altitude <= 0) ? r 
 				: r.Select(a => a.WithPos(a.Pos - new float2(0, move.Altitude)).WithZOffset(move.Altitude));
 

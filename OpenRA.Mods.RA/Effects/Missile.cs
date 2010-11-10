@@ -124,7 +124,7 @@ namespace OpenRA.Mods.RA.Effects
 		public IEnumerable<Renderable> Render()
 		{
 			yield return Renderable.Centered(anim.Image, Pos - new float2(0, Altitude), 
-				Args.weapon.Underwater ? "shadow" : "effect", null, (int)Pos.Y);
+				Args.weapon.Underwater ? PaletteRef.Shadow : PaletteRef.Effect, null, (int)Pos.Y);
 		}
 	}
 }

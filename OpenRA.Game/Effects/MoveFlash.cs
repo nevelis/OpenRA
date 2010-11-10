@@ -40,7 +40,7 @@ namespace OpenRA.Effects
 
 		public IEnumerable<Renderable> Render()
 		{
-			yield return Renderable.Centered(anim.Image, pos, "shadow", null, (int)pos.Y);
+			yield return Renderable.Centered(anim.Image, pos, PaletteRef.Shadow, null, (int)pos.Y);
 		}
 	}
 }

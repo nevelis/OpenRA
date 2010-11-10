@@ -38,7 +38,7 @@ namespace OpenRA.Mods.RA.Effects
 		{
 			if (a.IsInWorld)
 				yield return Renderable.Centered(anim.Image, 
-					a.CenterLocation, "chrome", null, (int)a.CenterLocation.Y);
+					a.CenterLocation, PaletteRef.Chrome, null, (int)a.CenterLocation.Y);
 		}
 	}
 }

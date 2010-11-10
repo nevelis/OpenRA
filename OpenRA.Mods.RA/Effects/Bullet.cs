@@ -134,7 +134,7 @@ namespace OpenRA.Mods.RA.Effects
 				if (Info.High || Info.Angle > 0)
 				{
 					if (Info.Shadow)
-						yield return Renderable.Centered(anim.Image, pos, "shadow", null, (int)pos.Y);
+						yield return Renderable.Centered(anim.Image, pos, PaletteRef.Shadow, null, (int)pos.Y);
 
 					var highPos = pos - new float2(0, GetAltitude());
 
@@ -142,7 +142,7 @@ namespace OpenRA.Mods.RA.Effects
 				}
 				else
 					yield return Renderable.Centered(anim.Image, pos,
-						Args.weapon.Underwater ? "shadow" : null, Args.firedBy.Owner.Index, (int)pos.Y);
+						Args.weapon.Underwater ? PaletteRef.Shadow : null, Args.firedBy.Owner.Index, (int)pos.Y);
 			}
 		}
 

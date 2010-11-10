@@ -43,7 +43,7 @@ namespace OpenRA.Mods.RA.Effects
 		{
 			if (a.IsInWorld)
 				yield return Renderable.Centered(anim.Image,
-					a.CenterLocation + offset, "effect", null, (int)a.CenterLocation.Y);
+					a.CenterLocation + offset, PaletteRef.Effect, null, (int)a.CenterLocation.Y);
 		}
 	}
 }

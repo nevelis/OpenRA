@@ -54,7 +54,7 @@ namespace OpenRA.Mods.RA.Effects
 		public IEnumerable<Renderable> Render()
 		{
 			yield return Renderable.Centered(anim.Image, 
-				Args.dest - new int2(0, altitude), "effect", null, Args.dest.Y);
+				Args.dest - new int2(0, altitude), PaletteRef.Effect, null, Args.dest.Y);
 		}
 	}
 }

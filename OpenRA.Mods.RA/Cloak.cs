@@ -77,7 +77,7 @@ namespace OpenRA.Mods.RA
 				return rs;
 
 			if (Cloaked && IsVisible(self, self.World.LocalPlayer))
-				return rs.Select(a => a.WithPalette("shadow"));
+				return rs.Select(a => a.WithPalette(PaletteRef.Shadow));
 			else
 				return new Renderable[] { };
 		}

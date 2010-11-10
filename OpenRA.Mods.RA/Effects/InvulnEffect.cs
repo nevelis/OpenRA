@@ -34,7 +34,7 @@ namespace OpenRA.Mods.RA.Effects
 		public IEnumerable<Renderable> Render()
 		{
 			foreach (var r in a.Render())
-				yield return r.WithPalette("invuln");
+				yield return r.WithPalette(PaletteRef.Invuln);
 		}
 	}
 }

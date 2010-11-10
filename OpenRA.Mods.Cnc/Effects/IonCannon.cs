@@ -36,7 +36,7 @@ namespace OpenRA.Mods.Cnc.Effects
 		{
 			yield return new Renderable(anim.Image,
 				target.CenterLocation - new float2(.5f * anim.Image.size.X, anim.Image.size.Y - Game.CellSize),
-				"effect", null, (int)target.CenterLocation.Y);
+				PaletteRef.Effect, null, (int)target.CenterLocation.Y);
 		}
 
 		void Finish( World world )

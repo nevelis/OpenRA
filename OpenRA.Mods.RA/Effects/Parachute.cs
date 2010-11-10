@@ -66,7 +66,7 @@ namespace OpenRA.Mods.RA.Effects
 		public IEnumerable<Renderable> Render()
 		{
 			var pos = location - new float2(0, altitude);
-			yield return Renderable.Centered(anim.Image, location, "shadow", null, 0);
+			yield return Renderable.Centered(anim.Image, location, PaletteRef.Shadow, null, 0);
 			yield return Renderable.Centered(anim.Image, pos, null, owner.Index, 2);
 			yield return Renderable.Centered(paraAnim.Image, pos, null, owner.Index, 3);
 		}

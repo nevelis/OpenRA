@@ -35,7 +35,7 @@ namespace OpenRA.Mods.RA.Effects
 
 		public IEnumerable<Renderable> Render()
 		{
-			yield return Renderable.Centered(anim.Image, pos, "effect", null, (int)pos.Y);
+			yield return Renderable.Centered(anim.Image, pos, PaletteRef.Effect, null, (int)pos.Y);
 		}
 	}
 }

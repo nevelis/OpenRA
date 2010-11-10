@@ -41,7 +41,7 @@ namespace OpenRA.Mods.RA.Effects
 		
 		public IEnumerable<Renderable> Render()
 		{
-			yield return Renderable.Centered(doors.Image, a.CenterLocation + doorOffset, "effect", null, (int)doorOffset.Y);
+			yield return Renderable.Centered(doors.Image, a.CenterLocation + doorOffset, PaletteRef.Effect, null, (int)doorOffset.Y);
 		}
 	}
 }
