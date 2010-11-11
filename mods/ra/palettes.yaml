@@ -1,12 +1,11 @@
 clock: chrome
 pips: chrome
 
-<<<<<<< Updated upstream
 mouse: cursor
 nopower: cursor
 
-=======
->>>>>>> Stashed changes
+msloicon2: chrome
+
 nuk2: player-cnc
 nuk2make: player-cnc
 nuk2icnh: chrome-cnc

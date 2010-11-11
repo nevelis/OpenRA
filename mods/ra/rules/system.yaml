@@ -122,8 +122,13 @@ Player:
 			1tnk: 0%
 			2tnk: 0%
 			3tnk: 0%
-	PlayerColorPalette:
+	PlayerColorPalette@player-ra:
+		BaseName: player
 		BasePalette: terrain
+	PlayerColorPalette@player-cnc:
+		BaseName: player-cnc
+		BasePalette: terrain-cnc
+		PaletteFormat: cnc
 	SurrenderOnDisconnect:
 
 World:	
@@ -145,11 +150,17 @@ World:
 		Maximum: 3
 		SpawnInterval: 120
 		WaterChance: .2
-	PaletteFromCurrentTheatre:
+	PaletteFromCurrentTheatre@terrain:
 		Name: terrain
+	PaletteFromCurrentTheatre@terrain-cnc:
+		Name: terrain-cnc
+		Prefix: cnc-
 	PaletteFromFile@chrome:
 		Name: chrome
 		Filename: temperat.pal
+	PaletteFromFile@chrome-cnc:
+		Name: chrome-cnc
+		Filename: cnc-temperat.pal
 	PaletteFromFile@effect:
 		Name: effect
 		Filename: temperat.pal

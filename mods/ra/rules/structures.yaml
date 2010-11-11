@@ -1,3 +1,32 @@
+NUK2:
+	Inherits: ^Building
+	Buildable:
+		Queue: Building
+		BuildPaletteOrder: 20
+		Prerequisites:
+		Owner: allies,soviet
+		Hotkey: l
+	Valued:
+		Cost: 500
+	Tooltip:
+		Name: Advanced Power Plant
+		Description: Provides more power, cheaper than the \nstandard Power Plant
+		AlternateName: @Power Plant
+		Icon: nuk2icnh
+	Building:
+		Power: 200
+		Footprint: ___ xxx xxx
+		Dimensions: 3,3
+		Capturable: true
+	Health:
+		HP: 700
+	Armor:
+		Type: Wood
+	RevealsShroud:
+		Range: 4
+	Bib:
+	IronCurtainable:
+
 MSLO:
 	NukeSilo:
 		MissileWeapon: atomic

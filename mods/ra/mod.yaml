@@ -7,6 +7,7 @@ Metadata:
 
 Folders:
 	.
+	mods
 	mods/ra
 	mods/ra/bits
 	mods/ra/uibits
@@ -28,6 +29,8 @@ Packages:
 	~scores.mix
 	~movies1.mix
 	~movies2.mix
+	cnc/packages/tempicnh.mix
+	cnc/packages/conquer.mix
 
 Rules:
 	mods/ra/rules/defaults.yaml
