@@ -144,7 +144,7 @@ namespace OpenRA.FileFormats
 
 		public static List<MiniYamlNode> FromFile( string path )
 		{			
-			return FromLines(File.ReadAllLines( path ), path);
+			return FromLines(FileSystem.Open( path ).ReadAllLines().ToArray(), path);
 		}
 
 		public static List<MiniYamlNode> FromStream(Stream s)

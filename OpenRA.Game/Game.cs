@@ -206,7 +206,7 @@ namespace OpenRA
 			Log.AddChannel("debug", "debug.log");
 			Log.AddChannel("sync", "syncreport.log");
 
-			FileSystem.Mount("."); // Needed to access shaders
+			FileSystem.Mount(".", ""); // Needed to access shaders
 			Renderer.Initialize( Game.Settings.Graphics.Mode );
 			Renderer.SheetSize = Settings.Game.SheetSize;
 			Renderer = new Renderer();

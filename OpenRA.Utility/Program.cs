@@ -97,9 +97,9 @@ namespace OpenRA.Utility
 		static void InstallRAMusic(string path)
 		{
 			if (!Directory.Exists(path)) { Console.WriteLine("Error: Path {0} does not exist", path); return; }
-			FileSystem.Mount(path);
+			FileSystem.Mount(path, "");
 			if (!FileSystem.Exists("MAIN.MIX")) { Console.WriteLine("Error: Could not find MAIN.MIX in path {0}", path); return; }
-			FileSystem.Mount("MAIN.MIX");
+			FileSystem.Mount("MAIN.MIX", "");
 
 			using (var scoresStream = FileSystem.Open("scores.mix"))
 				using (var destStream = File.Create(string.Format("mods{0}ra{0}packages{0}scores.mix", Path.DirectorySeparatorChar)))

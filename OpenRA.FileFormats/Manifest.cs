@@ -10,6 +10,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace OpenRA.FileFormats
 {
@@ -18,9 +19,10 @@ namespace OpenRA.FileFormats
 	public class Manifest
 	{
 		public readonly string[]
-			Mods, Folders, Packages, Rules, ServerTraits,
+			Mods, Rules, ServerTraits,
 			Sequences, Cursors, Chrome, Assemblies, ChromeLayout,
 			Weapons, Voices, Music, Movies, TileSets;
+		public readonly Dictionary<string, string> Folders, Packages;
 		public readonly string ShellmapUid, LoadScreen;
 		public readonly int TileSize = 24;
 
@@ -28,12 +30,12 @@ namespace OpenRA.FileFormats
 		{
 			Mods = mods;
 			var yaml = mods
-				.Select(m => MiniYaml.FromFile("mods/" + m + "/mod.yaml"))
+				.Select(m => MiniYaml.FromStream(File.OpenRead("mods/" + m + "/mod.yaml")))
 				.Aggregate(MiniYaml.Merge);
 			
 			// Todo: Use fieldloader
-			Folders = YamlList(yaml, "Folders");
-			Packages = YamlList(yaml, "Packages");
+			Folders = YamlDict(yaml, "Folders");
+			Packages = YamlDict(yaml, "Packages");
 			Rules = YamlList(yaml, "Rules");
 			ServerTraits = YamlList(yaml, "ServerTraits");
 			Sequences = YamlList(yaml, "Sequences");
@@ -61,6 +63,16 @@ namespace OpenRA.FileFormats
 				return new string[ 0 ];
 
 			return y.Value.NodesDict.Keys.ToArray();
+		}
+
+		static Dictionary<string,string> YamlDict(List<MiniYamlNode> ys, string key)
+		{
+			var ret = new Dictionary<string, string>();
+			var y = ys.FirstOrDefault( x => x.Key == key );
+			if( y != null )
+				foreach( var z in y.Value.Nodes )
+					ret.Add( z.Key, z.Value.Value );
+			return ret;
 		}
 	}
 }

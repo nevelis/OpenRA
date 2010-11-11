@@ -25,7 +25,8 @@ namespace OpenRA.FileFormats
 				if (!File.Exists("mods" + Path.DirectorySeparatorChar + m + Path.DirectorySeparatorChar + "mod.yaml"))
 					continue;
 
-				var yaml = new MiniYaml(null, MiniYaml.FromFile("mods" + Path.DirectorySeparatorChar + m + Path.DirectorySeparatorChar + "mod.yaml"));
+				var filename = Path.Combine( Path.Combine( "mods", m ), "mod.yaml" );
+				var yaml = new MiniYaml(null, MiniYaml.FromStream(File.OpenRead(filename)));
 				if (!yaml.NodesDict.ContainsKey("Metadata"))
 				{
 					continue;

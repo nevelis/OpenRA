@@ -117,7 +117,7 @@ namespace OpenRA.GameRules
 			if (File.Exists(SettingsFile))
 			{
 				Console.WriteLine("Loading settings file {0}",SettingsFile);
-				var yaml = MiniYaml.DictFromFile(SettingsFile);
+				var yaml = MiniYaml.DictFromStream(File.OpenRead(SettingsFile));
 				
 				foreach (var kv in Sections)
 					if (yaml.ContainsKey(kv.Key))

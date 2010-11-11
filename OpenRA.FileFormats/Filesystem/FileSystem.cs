@@ -18,13 +18,13 @@ namespace OpenRA.FileFormats
 {
 	public static class FileSystem
 	{
-		static List<IFolder> mountedFolders = new List<IFolder>();
+		static List<Pair<string, IFolder>> mountedFolders = new List<Pair<string, IFolder>>();
 
 		static Cache<uint, List<IFolder>> allFiles = new Cache<uint, List<IFolder>>( _ => new List<IFolder>() );
 
-		static void MountInner(IFolder folder)
+		static void MountInner(IFolder folder, string basePath)
 		{
-			mountedFolders.Add(folder);
+			mountedFolders.Add( Pair.New( basePath, folder ) );
 
 			foreach( var hash in folder.AllFileHashes() )
 			{
@@ -48,13 +48,13 @@ namespace OpenRA.FileFormats
 				return new Folder(filename, order++);
 		}
 
-		public static void Mount(string name)
+		public static void Mount(string name, string basePath)
 		{
 			name = name.ToLowerInvariant();
 			var optional = name.StartsWith("~");
 			if (optional) name = name.Substring(1);
 
-			var a = (Action)(() => FileSystem.MountInner(OpenPackage(name)));
+			var a = (Action)(() => FileSystem.MountInner(OpenPackage(name), basePath ?? ""));
 
 			if (optional)
 				try { a(); }
@@ -72,8 +72,8 @@ namespace OpenRA.FileFormats
 		public static void LoadFromManifest( Manifest manifest )
 		{
 			UnmountAll();
-			foreach (var dir in manifest.Folders) Mount(dir);
-			foreach (var pkg in manifest.Packages) Mount(pkg);
+			foreach (var dir in manifest.Folders) Mount(dir.Key, dir.Value);
+			foreach (var pkg in manifest.Packages) Mount(pkg.Key, pkg.Value);
 		}
 
 		static Stream GetFromCache( Cache<uint, List<IFolder>> index, string filename )
@@ -98,13 +98,13 @@ namespace OpenRA.FileFormats
 					return ret;
 			}
 
-			var folder = mountedFolders
-				.Where(x => x.Exists(filename))
-				.OrderByDescending(x => x.Priority)
-				.FirstOrDefault();
-
-			if (folder != null)
-				return folder.GetContent(filename);
+			foreach( var f in mountedFolders )
+			{
+				if( !filename.StartsWith( f.First ) ) continue;
+				var name = filename.Substring( f.First.Length );
+				if( f.Second.Exists( name ) )
+					return f.Second.GetContent( name );
+			}
 
 			throw new FileNotFoundException( string.Format( "File not found: {0}", filename ), filename );
 		}
@@ -123,9 +123,9 @@ namespace OpenRA.FileFormats
 
 			foreach( var ext in exts )
 			{
-				foreach( IFolder folder in mountedFolders )
-					if (folder.Exists(filename + ext))
-						return folder.GetContent( filename + ext );
+				foreach( var folder in mountedFolders )
+					if (folder.Second.Exists(filename + ext))
+						return folder.Second.GetContent( filename + ext );
 			}
 
 			throw new FileNotFoundException( string.Format( "File not found: {0}", filename ), filename );
@@ -134,7 +134,7 @@ namespace OpenRA.FileFormats
 		public static bool Exists(string filename)
 		{
 			foreach (var folder in mountedFolders)
-				if (folder.Exists(filename))
+				if (folder.Second.Exists(filename))
 				    return true;
 			return false;
 		}
