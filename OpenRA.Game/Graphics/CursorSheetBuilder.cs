@@ -31,12 +31,12 @@ namespace OpenRA.Graphics
 			try
 			{
 				var shp = new Dune2ShpReader(FileSystem.OpenWithExts(filename, exts));
-				return shp.Select(a => modData.SheetBuilder.Add(a.Image, a.Size)).ToArray();
+				return shp.Select(a => modData.SheetBuilder.Add(a.Image, a.Size, null)).ToArray();
 			}
 			catch (IndexOutOfRangeException) // This will occur when loading a custom (RA-format) .shp
 			{
 				var shp = new ShpReader(FileSystem.OpenWithExts(filename, exts));
-				return shp.Select(a => modData.SheetBuilder.Add(a.Image, shp.Size)).ToArray();
+				return shp.Select(a => modData.SheetBuilder.Add(a.Image, shp.Size, null)).ToArray();
 			}
 		}
 

@@ -22,9 +22,9 @@ namespace OpenRA.Graphics
 			initialChannel = ch;
 		}
 
-		public Sprite Add(byte[] src, Size size)
+		public Sprite Add(byte[] src, Size size, PaletteRef palette)
 		{
-			Sprite rect = Allocate(size);
+			Sprite rect = Allocate(size, palette);
 			Util.FastCopyIntoChannel(rect, src);
 			return rect;
 		}
@@ -35,7 +35,7 @@ namespace OpenRA.Graphics
 			for (int i = 0; i < data.Length; i++)
 				data[i] = paletteIndex;
 
-			return Add(data, size);
+			return Add(data, size, null);
 		}
 
 		Sheet NewSheet() { return new Sheet(new Size( Renderer.SheetSize, Renderer.SheetSize ) ); }
@@ -62,7 +62,7 @@ namespace OpenRA.Graphics
 			}
 		}
 
-		public Sprite Allocate(Size imageSize)
+		public Sprite Allocate(Size imageSize, PaletteRef palette)
 		{
 			if (current == null)
 			{
@@ -92,7 +92,7 @@ namespace OpenRA.Graphics
 				p = new Point(0,0);
 			}
 
-			Sprite rect = new Sprite(current, new Rectangle(p, imageSize), channel.Value);
+			Sprite rect = new Sprite(current, new Rectangle(p, imageSize), channel.Value, palette);
 			current.MakeDirty();
 			p.X += imageSize.Width;
 

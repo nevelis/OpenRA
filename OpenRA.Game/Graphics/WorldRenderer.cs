@@ -102,7 +102,7 @@ namespace OpenRA.Graphics
 
 			foreach( var image in SpritesToRender() )
 			{
-				var paletteIndex = ( image.Palette ?? PaletteRef.Player ).PaletteIndex( this, image.PalettePlayer );
+				var paletteIndex = ( image.Palette ?? image.Sprite.palette ?? PaletteRef.Player ).PaletteIndex( this, image.PalettePlayer );
 				image.Sprite.DrawAt( image.Pos, paletteIndex, image.Scale );
 			}
 		    uiOverlay.Draw(this, world);

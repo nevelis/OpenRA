@@ -17,6 +17,7 @@ namespace OpenRA.Mods.RA
 	{
 		public readonly string Name = null;
 		public readonly bool Transparent = true;
+		public readonly string Prefix = null;
 
 		public object Create(ActorInitializer init) { return new PaletteFromCurrentTheatre(init.world, this); }
 	}
@@ -34,7 +35,7 @@ namespace OpenRA.Mods.RA
 
 		public void InitPalette( OpenRA.Graphics.WorldRenderer wr )
 		{
-			wr.AddPalette( info.Name, new Palette( FileSystem.Open( world.TileSet.Palette ), info.Transparent ) );
+			wr.AddPalette( info.Name, new Palette( FileSystem.Open( (info.Prefix ?? "") + world.TileSet.Palette ), info.Transparent ) );
 		}
 	}
 }

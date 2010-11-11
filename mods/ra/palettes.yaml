@@ -1,0 +1,12 @@
+clock: chrome
+pips: chrome
+
+<<<<<<< Updated upstream
+mouse: cursor
+nopower: cursor
+
+=======
+>>>>>>> Stashed changes
+nuk2: player-cnc
+nuk2make: player-cnc
+nuk2icnh: chrome-cnc

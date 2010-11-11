@@ -32,7 +32,7 @@ namespace OpenRA.Graphics
 
 			Size tileSize = new Size( Game.CellSize, Game.CellSize );
 			var tileMapping = new Cache<TileReference<ushort,byte>, Sprite>(
-				x => Game.modData.SheetBuilder.Add(world.TileSet.GetBytes(x), tileSize));
+				x => Game.modData.SheetBuilder.Add(world.TileSet.GetBytes(x), tileSize, null));
 
 			Vertex[] vertices = new Vertex[4 * map.Height * map.Width];
 			ushort[] indices = new ushort[6 * map.Height * map.Width];

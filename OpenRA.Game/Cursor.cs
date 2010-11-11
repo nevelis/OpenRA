@@ -22,7 +22,7 @@ namespace OpenRA
 		
 		public void Draw(WorldRenderer wr, int frame, float2 pos)
 		{
-			sequence.GetSprite(frame).DrawAt(wr, pos - sequence.Hotspot, sequence.Palette);
+			sequence.GetSprite(frame).DrawAt(pos - sequence.Hotspot);
 		}
 	}
 }

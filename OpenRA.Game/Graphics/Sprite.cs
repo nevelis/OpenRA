@@ -19,14 +19,19 @@ namespace OpenRA.Graphics
 		public readonly TextureChannel channel;
 		public readonly RectangleF uv;
 		public readonly float2 size;
+		public readonly PaletteRef palette;
 
 		readonly float2[] uvhax;
 
 		public Sprite(Sheet sheet, Rectangle bounds, TextureChannel channel)
+			: this( sheet, bounds, channel, null ) { }
+
+		public Sprite(Sheet sheet, Rectangle bounds, TextureChannel channel, PaletteRef palette)
 		{
 			this.bounds = bounds;
 			this.sheet = sheet;
 			this.channel = channel;
+			this.palette = palette;
 
 			uv = new RectangleF(
 					(float)(bounds.Left) / sheet.Size.Width,
@@ -50,9 +55,14 @@ namespace OpenRA.Graphics
 			return uvhax[ k ];
 		}
 
-		public void DrawAt( WorldRenderer wr, float2 location, string palette )
+		public void DrawAt( WorldRenderer wr, float2 location, PaletteRef palette )
 		{
 			Game.Renderer.SpriteRenderer.DrawSprite( this, location, wr, palette, this.size );
+		}
+
+		public void DrawAt( float2 location )
+		{
+			Game.Renderer.SpriteRenderer.DrawSprite( this, location );
 		}
 
 		public void DrawAt( float2 location, int paletteIndex )

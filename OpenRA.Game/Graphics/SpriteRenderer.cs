@@ -53,15 +53,15 @@ namespace OpenRA.Graphics
 				currentSheet = null;
 			}
 		}
-				
-		public void DrawSprite(Sprite s, float2 location, WorldRenderer wr, string palette)
+
+		public void DrawSprite(Sprite s, float2 location, WorldRenderer wr, PaletteRef palette)
 		{
-			DrawSprite(s, location, wr.GetPaletteIndex(palette, null), s.size);
+			DrawSprite(s, location, palette.PaletteIndex(wr, null), s.size);
 		}
-		
-		public void DrawSprite(Sprite s, float2 location, WorldRenderer wr, string palette, float2 size)
+
+		public void DrawSprite(Sprite s, float2 location, WorldRenderer wr, PaletteRef palette, float2 size)
 		{
-			DrawSprite(s, location, wr.GetPaletteIndex(palette, null), size);
+			DrawSprite(s, location, palette.PaletteIndex(wr, null), size);
 		}
 		
 		public void DrawSprite(Sprite s, float2 location, int paletteIndex, float2 size)

@@ -42,10 +42,10 @@ namespace OpenRA.Graphics
 		{
 			Game.modData.LoadScreen.Display();
 			string cursorSrc = eCursor.GetAttribute("src");
-			string palette = eCursor.GetAttribute("palette");
+			var palette = PaletteRef.Get( eCursor.GetAttribute("palette") );
 
 			foreach (XmlElement eSequence in eCursor.SelectNodes("./sequence"))
-				cursors.Add(eSequence.GetAttribute("name"), new CursorSequence(cursorSrc, palette, eSequence));
+				cursors.Add(eSequence.GetAttribute("name"), new CursorSequence(cursorSrc, eSequence));
 
 		}
 		

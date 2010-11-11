@@ -61,7 +61,7 @@ namespace OpenRA.Widgets
 				cachedFrame = frame;
 			}
 			
-			Game.Renderer.WorldSpriteRenderer.DrawSprite(sprite,RenderOrigin, wr, palette);
+			Game.Renderer.WorldSpriteRenderer.DrawSprite(sprite,RenderOrigin, wr, PaletteRef.Get(palette));
 		}
 	}
 }

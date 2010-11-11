@@ -10,6 +10,7 @@
 
 using System.Linq;
 using OpenRA.FileFormats;
+using System.Collections.Generic;
 
 namespace OpenRA.Graphics
 {
@@ -19,6 +20,12 @@ namespace OpenRA.Graphics
 		{
 			exts = tileset.Extensions;
 			sprites = new Cache<string, Sprite[]>( LoadSprites );
+
+			shpPalettes = new Dictionary<string, PaletteRef>();
+			if( FileSystem.Exists( "palettes.yaml" ) )
+				using( var shpPalettesFile = FileSystem.Open( "palettes.yaml" ) )
+					foreach( var y in MiniYaml.FromStream( shpPalettesFile ) )
+						shpPalettes.Add( y.Key, PaletteRef.Get( y.Value.Value ) );
 		}
 
 		static Cache<string, Sprite[]> sprites;
@@ -27,9 +34,22 @@ namespace OpenRA.Graphics
 		static Sprite[] LoadSprites(string filename)
 		{
 			var shp = new ShpReader(FileSystem.OpenWithExts(filename, exts));
-			return shp.Select(a => Game.modData.SheetBuilder.Add(a.Image, shp.Size)).ToArray();
+			var palette = PaletteForShp( filename );
+			return shp.Select(a => Game.modData.SheetBuilder.Add(a.Image, shp.Size, palette)).ToArray();
 		}
 
 		public static Sprite[] LoadAllSprites(string filename) { return sprites[filename]; }
+
+		static Dictionary<string, PaletteRef> shpPalettes;
+		static PaletteRef PaletteForShp( string filename )
+		{
+			PaletteRef ret;
+			if( shpPalettes.TryGetValue( filename, out ret ) )
+				return ret;
+
+			if( filename.EndsWith( "icon" ) || filename.EndsWith( "ichn" ) )
+				return PaletteRef.Get( "chrome" );
+			return PaletteRef.Get( "player" );
+		}
 	}
 }

@@ -35,7 +35,7 @@ namespace OpenRA
 				for (int j = 0; j < Game.CellSize; j++)
 					data[i * Game.CellSize + j] = ((i + j) % 4 < 2) ? (byte)0 : paletteIndex;
 
-			return Game.modData.SheetBuilder.Add(data, new Size(Game.CellSize, Game.CellSize));
+			return Game.modData.SheetBuilder.Add(data, new Size(Game.CellSize, Game.CellSize), null);
 		}
 
 		public void Draw( WorldRenderer wr, World world )
@@ -48,14 +48,14 @@ namespace OpenRA
 				for (var i = world.Map.Bounds.Left; i < world.Map.Bounds.Right; i++)
 					for (var j = world.Map.Bounds.Top; j < world.Map.Bounds.Bottom; j++)	
 						if (uim.GetUnitsAt(new int2(i, j)).Any())
-							unitDebug.DrawAt(wr, Game.CellSize * new float2(i, j), "terrain");
+							unitDebug.DrawAt(wr, Game.CellSize * new float2(i, j), PaletteRef.Terrain);
 			}
 		}
 
 		public void DrawGrid( WorldRenderer wr, Dictionary<int2, bool> cells )
 		{
 			foreach( var c in cells )
-				( c.Value ? buildOk : buildBlocked ).DrawAt( wr, Game.CellSize * c.Key, "terrain" );
+				( c.Value ? buildOk : buildBlocked ).DrawAt( wr, Game.CellSize * c.Key, PaletteRef.Terrain );
 		}
 	}
 }

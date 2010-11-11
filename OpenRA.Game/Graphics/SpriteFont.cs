@@ -88,7 +88,7 @@ namespace OpenRA.Graphics
 
 			var s = builder.Allocate(
 				new Size(_glyph.metrics.width.ToInt32() >> 6, 
-					_glyph.metrics.height.ToInt32() >> 6));
+					_glyph.metrics.height.ToInt32() >> 6), null);
 
 			var g = new GlyphInfo
 			{

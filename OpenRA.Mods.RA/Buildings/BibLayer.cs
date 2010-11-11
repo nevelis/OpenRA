@@ -84,7 +84,7 @@ namespace OpenRA.Mods.RA.Buildings
 					continue;
 
 				bibSprites[kv.Value.type - 1][kv.Value.image].DrawAt( wr,
-					Game.CellSize * kv.Key, "terrain");
+					Game.CellSize * kv.Key, PaletteRef.Terrain);
 			}
 		}
 	}

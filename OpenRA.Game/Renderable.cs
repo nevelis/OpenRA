@@ -57,7 +57,7 @@ namespace OpenRA
 
 		public int PaletteIndex( WorldRenderer wr, int? playerIndex )
 		{
-			var i = playerIndex ?? 0;
+			var i = playerIndex ?? -1;
 			if( i >= 16 || i < 0 )
 				return wr.GetPaletteIndex( paletteName, playerIndex );
 			if( cachedWR != wr )

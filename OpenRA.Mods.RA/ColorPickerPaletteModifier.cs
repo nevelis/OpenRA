@@ -9,6 +9,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.Traits;
 using OpenRA.Widgets.Delegates;
@@ -23,7 +24,7 @@ namespace OpenRA.Mods.RA
 		PaletteFormat format;
 		public void InitPalette( WorldRenderer wr )
 		{
-			var info = Rules.Info["player"].Traits.Get<PlayerColorPaletteInfo>();
+			var info = Rules.Info["player"].Traits.WithInterface<PlayerColorPaletteInfo>().First();
 			format = info.PaletteFormat;
 			wr.AddPalette("colorpicker", wr.GetPalette(info.BasePalette));
 		}
