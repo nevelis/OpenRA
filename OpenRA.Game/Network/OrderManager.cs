@@ -30,7 +30,7 @@ namespace OpenRA.Network
 
 		public int NetFrameNumber { get; private set; }
 		public int LocalFrameNumber;
-		public int FramesAhead = 0;
+		int LastSentFrameNumber;
 
 		public int LastTickTime = Environment.TickCount;
 
@@ -46,8 +46,11 @@ namespace OpenRA.Network
 			if (GameStarted) return;
 
 			NetFrameNumber = 1;
-			for( int i = NetFrameNumber ; i <= FramesAhead ; i++ )
+			for( int i = NetFrameNumber ; i <= Connection.OrderLatency ; i++ )
+			{
 				Connection.Send( i, new List<byte[]>() );
+				LastSentFrameNumber = i;
+			}
 		}
 
 		public OrderManager( string host, int port, IConnection conn )
@@ -156,8 +159,13 @@ namespace OpenRA.Network
 			if( !IsReadyForNextFrame )
 				throw new InvalidOperationException();
 
-			Connection.Send( NetFrameNumber + FramesAhead, localOrders.Select( o => o.Serialize() ).ToList() );
-			localOrders.Clear();
+			var sendFrame = NetFrameNumber + Connection.OrderLatency;
+			if( sendFrame > LastSentFrameNumber )
+			{
+				LastSentFrameNumber = sendFrame;
+				Connection.Send( LastSentFrameNumber, localOrders.Select( o => o.Serialize() ).ToList() );
+				localOrders.Clear();
+			}
 
 			var sync = new List<int>();
 			sync.Add( world.SyncHash() );

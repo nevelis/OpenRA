@@ -30,6 +30,7 @@ namespace OpenRA.Network
 	{
 		int LocalClientId { get; }
 		ConnectionState ConnectionState { get; }
+		int OrderLatency { get; }
 		void Send( int frame, List<byte[]> orders );
 		void SendImmediate( List<byte[]> orders );
 		void SendSync( int frame, byte[] syncData );
@@ -55,13 +56,22 @@ namespace OpenRA.Network
 			get { return ConnectionState.PreConnecting; }
 		}
 
+		public virtual int OrderLatency { get { return 0; } }
+
+		int nextSendFrame = 1;
+
 		public virtual void Send( int frame, List<byte[]> orders )
 		{
+			if( nextSendFrame != frame )
+				throw new InvalidOperationException( "nextSentFrame is wrong" );
+
 			var ms = new MemoryStream();
 			ms.Write( BitConverter.GetBytes( frame ) );
 			foreach( var o in orders )
 				ms.Write( o );
 			Send( ms.ToArray() );
+
+			nextSendFrame = frame + 1;
 		}
 
 		public virtual void SendImmediate( List<byte[]> orders )
@@ -156,6 +166,7 @@ namespace OpenRA.Network
 
 		public override int LocalClientId { get { return clientId; } }
 		public override ConnectionState ConnectionState { get { return connectionState; } }
+		public override int OrderLatency { get { return 3; } }
 
 		List<byte[]> queuedSyncPackets = new List<byte[]>();
 

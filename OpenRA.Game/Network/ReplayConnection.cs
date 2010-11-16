@@ -8,7 +8,6 @@ namespace OpenRA.Network
 {
 	class ReplayConnection : IConnection
 	{
-		//uint nextFrame = 1;
 		FileStream replayStream;
 
 		public ReplayConnection( string replayFilename )
@@ -25,6 +24,8 @@ namespace OpenRA.Network
 		{
 			get { return ConnectionState.Connected; }
 		}
+
+		public int OrderLatency { get { return 0; } }
 
 		// do nothing; ignore locally generated orders
 		public void Send( int frame, List<byte[]> orders ) { }
@@ -75,6 +76,7 @@ namespace OpenRA.Network
 
 		public int LocalClientId { get { return inner.LocalClientId; } }
 		public ConnectionState ConnectionState { get { return inner.ConnectionState; } }
+		public int OrderLatency { get { return inner.OrderLatency; } }
 
 		public void Send( int frame, List<byte[]> orders ) { inner.Send( frame, orders ); }
 		public void SendImmediate( List<byte[]> orders ) { inner.SendImmediate( orders ); }

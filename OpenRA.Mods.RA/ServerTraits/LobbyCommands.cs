@@ -70,7 +70,6 @@ namespace OpenRA.Mods.RA.Server
 
 						Log.Write("server", "Order lag is now {0} frames.", lag);
 
-						server.lobbyInfo.GlobalSettings.OrderLatency = lag;
 						server.SyncLobbyInfo();
 						return true;
 					}},
