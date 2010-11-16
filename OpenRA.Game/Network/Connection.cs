@@ -135,7 +135,7 @@ namespace OpenRA.Network
 					{
 						var len = reader.ReadInt32();
 						var client = reader.ReadInt32();
-						var buf = reader.ReadBytes( len );
+						var buf = reader.ReadBytes( len - 4 );
 						if( len == 0 )
 							throw new NotImplementedException();
 						lock( this )

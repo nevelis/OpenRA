@@ -190,7 +190,7 @@ namespace OpenRA.Server
 			try
 			{
 				var ms = new MemoryStream();
-				ms.Write( BitConverter.GetBytes( data.Length + 4 ) );
+				ms.Write( BitConverter.GetBytes( data.Length + 8 ) );
 				ms.Write( BitConverter.GetBytes( client ) );
 				ms.Write( BitConverter.GetBytes( frame ) );
 				ms.Write( data );
