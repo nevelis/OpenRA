@@ -59,7 +59,7 @@ namespace OpenRA
 			if( !Directory.Exists( path ) ) Directory.CreateDirectory( path );
 			var replayFile = File.Create( Path.Combine( path, replayFilename ) );
 
-			orderManager = new OrderManager( host, port, new ReplayRecorderConnection( new NetworkConnection( host, port ), replayFile ) );
+			orderManager = new OrderManager( host, port, new ReplayRecorderConnection( new TcpNetworkConnection( host, port ), replayFile ) );
 			lastConnectionState = ConnectionState.PreConnecting;
 			ConnectionStateChanged(orderManager);
 		}
