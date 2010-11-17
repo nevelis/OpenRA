@@ -38,7 +38,7 @@ namespace OpenRA.Mods.RA.Server
 				{ "name", 
 					s => 
 					{
-						Log.Write("server", "Player@{0} is now known as {1}", conn.socket.RemoteEndPoint, s);
+						Log.Write("server", "Player@{0} is now known as {1}", conn.RemoteEndPoint, s);
 						client.Name = s;
 						server.SyncLobbyInfo();
 						return true;

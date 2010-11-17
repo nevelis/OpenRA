@@ -12,86 +12,46 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using OpenRA.Network;
+using System.Net;
 
 namespace OpenRA.Server
 {
 	public class Connection
 	{
-		public Socket socket;
-		public List<byte> data = new List<byte>();
-		public ReceiveState State = ReceiveState.Header;
-		public int ExpectLength = 8;
-		public int Frame = 0;
+		public int MostRecentFrame { get; private set; }
 
-		public int MostRecentFrame = 0;
+		readonly Socket socket;
+		public EndPoint RemoteEndPoint { get { return socket.RemoteEndPoint; } }
+		public readonly int PlayerIndex;
 
-		/* client data */
-		public int PlayerIndex;
-
-		public byte[] PopBytes(int n)
+		public Connection( Socket socket, int playerIndex )
 		{
-			var result = data.GetRange(0, n);
-			data.RemoveRange(0, n);
-			return result.ToArray();
+			this.socket = socket;
+			this.PlayerIndex = playerIndex;
+
+			socket.Send(BitConverter.GetBytes(ProtocolVersion.Version));
+			socket.Send(BitConverter.GetBytes(PlayerIndex));
 		}
 
-		bool ReadDataInner( Server server )
+		public void StartReader( Server server )
 		{
-			var rx = new byte[1024];
-			var len = 0;
-
-			for (; ; )
-			{
-				try
+			socket.ReadLengthPrefixedBytesAsync( b =>
 				{
-					if (0 < (len = socket.Receive(rx)))
-						data.AddRange(rx.Take(len));
-					else
+					lock( server )
 					{
-						if (len == 0)
-							server.DropClient(this, null);
-						break;
+						var frame = BitConverter.ToInt32( b, 0 );
+						server.DispatchOrders( this, frame, b.Skip( 4 ).ToArray() );
+						MostRecentFrame = frame;
+						server.UpdateInFlightFrames( frame, this );
 					}
-						
-				}
-				catch (SocketException e)
-				{
-					if (e.SocketErrorCode == SocketError.WouldBlock) break;
-					server.DropClient(this, e); 
-					return false; 
-				}
-			}
-
-			return true;
+					StartReader( server );
+				}, error => server.DropClient( this, error ) );
 		}
 
-		public void ReadData( Server server )
+		public void Send( byte[] bytes )
 		{
-			if (ReadDataInner(server))
-				while (data.Count >= ExpectLength)
-				{
-					var bytes = PopBytes(ExpectLength);
-					switch (State)
-					{
-						case ReceiveState.Header:
-							{
-								ExpectLength = BitConverter.ToInt32(bytes, 0) - 4;
-								Frame = BitConverter.ToInt32(bytes, 4);
-								State = ReceiveState.Data;
-							} break;
-
-						case ReceiveState.Data:
-							{
-								server.DispatchOrders(this, Frame, bytes);
-								MostRecentFrame = Frame;
-								ExpectLength = 8;
-								State = ReceiveState.Header;
-
-								server.UpdateInFlightFrames(this);
-							} break;
-					}
-				}
-		}}
-
-	public enum ReceiveState { Header, Data };
+			socket.Send( bytes );
+		}
+	}
 }

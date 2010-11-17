@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 
 namespace OpenRA.Network
 {
@@ -46,6 +47,57 @@ namespace OpenRA.Network
 					writer.Write( s );
 			}
 			return ms.ToArray();
+		}
+
+		public static void ReadLengthPrefixedBytesAsync( this Socket socket, Action<byte[]> fn, Action<Exception> exceptionCallback )
+		{
+			SocketAsyncReader.Read( socket, 4, b =>
+				{
+					SocketAsyncReader.Read( socket, BitConverter.ToInt32( b, 0 ), fn, exceptionCallback );
+				}, exceptionCallback );
+		}
+
+		class SocketAsyncReader
+		{
+			Socket socket;
+			byte[] bytes;
+			int remaining;
+			Action<byte[]> callback;
+			Action<Exception> exceptionCallback;
+
+			public static void Read( Socket socket, int length, Action<byte[]> fn, Action<Exception> exceptionCallback )
+			{
+				new SocketAsyncReader
+				{
+					socket = socket,
+					remaining = length,
+					bytes = new byte[ length ],
+					callback = fn,
+					exceptionCallback = exceptionCallback,
+				}.Read();
+			}
+
+			void Read()
+			{
+				if( remaining == 0 )
+					callback( bytes );
+				else
+					socket.BeginReceive( bytes, bytes.Length - remaining, remaining, SocketFlags.None, ReadCallback, null );
+			}
+
+			void ReadCallback( IAsyncResult ar )
+			{
+				try
+				{
+					remaining -= socket.EndReceive( ar );
+					Read();
+				}
+				catch( Exception e )
+				{
+					if( exceptionCallback != null )
+						exceptionCallback( e );
+				}
+			}
 		}
 	}
 }

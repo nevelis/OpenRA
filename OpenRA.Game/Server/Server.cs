@@ -25,29 +25,32 @@ namespace OpenRA.Server
 {
 	public class Server
 	{
-		public List<Connection> conns = new List<Connection>();
-		TcpListener listener = null;
-		Dictionary<int, List<Connection>> inFlightFrames
+		public readonly List<Connection> conns = new List<Connection>();
+		readonly TcpListener listener = null;
+		readonly Dictionary<int, List<Connection>> inFlightFrames
 			= new Dictionary<int, List<Connection>>();
 		
-		TypeDictionary ServerTraits = new TypeDictionary();
+		readonly TypeDictionary ServerTraits = new TypeDictionary();
 		public Session lobbyInfo;
 		public bool GameStarted = false;
-		public string Name;
-		int randomSeed;
+		public readonly string Name;
+		readonly int randomSeed;
 
-		public ModData ModData;
+		public readonly ModData ModData;
 		public Map Map;
 
 		public void Shutdown()
 		{
-			conns.Clear();
-			GameStarted = false;
-			foreach (var t in ServerTraits.WithInterface<INotifyServerShutdown>())
-				t.ServerShutdown(this);
-			
-			try { listener.Stop(); }
-			catch { }
+			lock( this )
+			{
+				conns.Clear();
+				GameStarted = false;
+				foreach( var t in ServerTraits.WithInterface<INotifyServerShutdown>() )
+					t.ServerShutdown( this );
+
+				try { listener.Stop(); }
+				catch { }
+			}
 		}
 		
 		public Server(ModData modData, Settings settings, string map)
@@ -93,22 +96,24 @@ namespace OpenRA.Server
 				{
 					var checkRead = new ArrayList();
 					checkRead.Add( listener.Server );
-					foreach( var c in conns ) checkRead.Add( c.socket );
 
 					Socket.Select( checkRead, null, null, timeout );
 
-					foreach( Socket s in checkRead )
-						if( s == listener.Server ) AcceptConnection();
-						else if (conns.Count > 0) conns.Single( c => c.socket == s ).ReadData( this );
-
-					foreach (var t in ServerTraits.WithInterface<ITick>())
-						t.Tick(this);
-					
-					if (conns.Count() == 0)
+					lock( this )
 					{
-						listener.Stop();
-						GameStarted = false;
-						break;
+						foreach( Socket s in checkRead )
+							if( s == listener.Server ) AcceptConnection();
+							else throw new InvalidOperationException();
+
+						foreach( var t in ServerTraits.WithInterface<ITick>() )
+							t.Tick( this );
+
+						if( conns.Count() == 0 )
+						{
+							listener.Stop();
+							GameStarted = false;
+							break;
+						}
 					}
 				}
 			} ) { IsBackground = true }.Start();
@@ -143,25 +148,23 @@ namespace OpenRA.Server
 				return; 
 			}
 
-			var newConn = new Connection { socket = newSocket };
+			Connection newConn = null;
 			try
 			{
 				if (GameStarted)
 				{
 					Log.Write("server", "Rejected connection from {0}; game is already started.", 
-						newConn.socket.RemoteEndPoint);
-					newConn.socket.Close();
+						newSocket.RemoteEndPoint);
+					newSocket.Close();
 					return;
 				}
 
-				newConn.socket.Blocking = false;
-				newConn.socket.NoDelay = true;
+				newSocket.NoDelay = true;
 
-				// assign the player number.
-				newConn.PlayerIndex = ChooseFreePlayerIndex();
-				newConn.socket.Send(BitConverter.GetBytes(ProtocolVersion.Version));
-				newConn.socket.Send(BitConverter.GetBytes(newConn.PlayerIndex));
+				newConn = new Connection( newSocket, ChooseFreePlayerIndex() );
 				conns.Add(newConn);
+
+				newConn.StartReader( this );
 
 				foreach (var t in ServerTraits.WithInterface<IClientJoined>())
 					t.ClientJoined(this, newConn);
@@ -169,18 +172,18 @@ namespace OpenRA.Server
 			catch (Exception e) { DropClient(newConn, e); }
 		}
 
-		public void UpdateInFlightFrames(Connection conn)
+		public void UpdateInFlightFrames(int frame, Connection conn)
 		{
-			if (conn.Frame != 0)
+			if (frame != 0)
 			{
-				if (!inFlightFrames.ContainsKey(conn.Frame))
-					inFlightFrames[conn.Frame] = new List<Connection> { conn };
+				if (!inFlightFrames.ContainsKey(frame))
+					inFlightFrames[frame] = new List<Connection> { conn };
 				else
-					inFlightFrames[conn.Frame].Add(conn);
+					inFlightFrames[frame].Add(conn);
 
-				if (conns.All(c => inFlightFrames[conn.Frame].Contains(c)))
+				if (conns.All(c => inFlightFrames[frame].Contains(c)))
 				{
-					inFlightFrames.Remove(conn.Frame);
+					inFlightFrames.Remove(frame);
 				}
 			}
 		}
@@ -194,7 +197,7 @@ namespace OpenRA.Server
 				ms.Write( BitConverter.GetBytes( client ) );
 				ms.Write( BitConverter.GetBytes( frame ) );
 				ms.Write( data );
-				c.socket.Send( ms.ToArray() );
+				c.Send( ms.ToArray() );
 			}
 			catch( Exception e ) { DropClient( c, e ); }
 		}

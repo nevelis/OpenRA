@@ -47,7 +47,7 @@ namespace OpenRA.Mods.RA.Server
 							client.State = Session.ClientState.NotReady;
 
 						Log.Write("server", "Player @{0} is {1}",
-							conn.socket.RemoteEndPoint, client.State);
+							conn.RemoteEndPoint, client.State);
 
 						server.SyncLobbyInfo();
 						
@@ -290,7 +290,7 @@ namespace OpenRA.Mods.RA.Server
 			server.lobbyInfo.Clients.Add(client);
 
 			Log.Write("server", "Client {0}: Accepted connection from {1}",
-				newConn.PlayerIndex, newConn.socket.RemoteEndPoint);
+				newConn.PlayerIndex, newConn.RemoteEndPoint);
 
 			server.SendChat(newConn, "has joined the game.");
 			server.SyncLobbyInfo();
