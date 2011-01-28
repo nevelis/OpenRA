@@ -1,10 +1,10 @@
 ﻿#region Copyright & License Information
 /*
- * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2010 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation. For more information,
- * see COPYING.
+ * see LICENSE.
  */
 #endregion
 
@@ -13,8 +13,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using System.Xml;
 using OpenRA.FileFormats;
+using OpenRA.Graphics;
 
 namespace SequenceEditor
 {
@@ -22,10 +22,11 @@ namespace SequenceEditor
 	{
 		static string XmlFilename;
 		public static string UnitName;
-		public static XmlDocument Doc;
+		//public static XmlDocument Doc;
+		public static List<MiniYamlNode> Yaml;
 		public static Dictionary<string, Bitmap[]> Shps = new Dictionary<string, Bitmap[]>();
 		public static Palette Pal;
-		public static Dictionary<string, Sequence> Sequences = new Dictionary<string, Sequence>();
+		public static Dictionary<string, SequenceData> Sequences = new Dictionary<string, SequenceData>();
 
 		public static void LoadAndResolve( string shp )
 		{
@@ -46,32 +47,32 @@ namespace SequenceEditor
 			catch { }
 		}
 
-		public static void Save()
-		{
-			var e = Doc.SelectSingleNode(string.Format("//unit[@name=\"{0}\"]", UnitName)) as XmlElement;
-			if (e == null)
-			{
-				e = Doc.CreateElement("unit");
-				e.SetAttribute( "name", UnitName );
-				e = Doc.SelectSingleNode("sequences").AppendChild(e) as XmlElement;
-			}
+		//public static void Save()
+		//{
+		//    var e = Doc.SelectSingleNode(string.Format("//unit[@name=\"{0}\"]", UnitName)) as XmlElement;
+		//    if (e == null)
+		//    {
+		//        e = Doc.CreateElement("unit");
+		//        e.SetAttribute( "name", UnitName );
+		//        e = Doc.SelectSingleNode("sequences").AppendChild(e) as XmlElement;
+		//    }
 
-			while (e.HasChildNodes) e.RemoveChild(e.FirstChild);	/* what a fail */
+		//    while (e.HasChildNodes) e.RemoveChild(e.FirstChild);	/* what a fail */
 
-			foreach (var s in Sequences)
-			{
-				var seqnode = Doc.CreateElement("sequence");
-				seqnode.SetAttribute("name", s.Key);
-				seqnode.SetAttribute("start", s.Value.start.ToString());
-				seqnode.SetAttribute("length", s.Value.length.ToString());
-				if (s.Value.shp != UnitName)
-					seqnode.SetAttribute("src", s.Value.shp);
+		//    foreach (var s in Sequences)
+		//    {
+		//        var seqnode = Doc.CreateElement("sequence");
+		//        seqnode.SetAttribute("name", s.Key);
+		//        seqnode.SetAttribute("start", s.Value.start.ToString());
+		//        seqnode.SetAttribute("length", s.Value.length.ToString());
+		//        if (s.Value.shp != UnitName)
+		//            seqnode.SetAttribute("src", s.Value.shp);
 
-				e.AppendChild(seqnode);
-			}
+		//        e.AppendChild(seqnode);
+		//    }
 
-			Doc.Save(XmlFilename);
-		}
+		//    Doc.Save(XmlFilename);
+		//}
 
 		[STAThread]
 		static void Main( string[] args )
@@ -89,9 +90,11 @@ namespace SequenceEditor
 			var manifest = new Manifest(mods);
 			FileSystem.LoadFromManifest( manifest );
 
+
+			
+
 			XmlFilename = args[1];
-			Doc = new XmlDocument(); 
-			Doc.Load(XmlFilename);
+			Yaml = MiniYaml.FromFile(XmlFilename);
 
 			var tempPal = new Palette(FileSystem.Open(args[2]), true);
 			Pal = tempPal;
@@ -100,20 +103,32 @@ namespace SequenceEditor
 			if (string.IsNullOrEmpty(UnitName))
 				return;
 
-			LoadAndResolve(UnitName); 
+			LoadAndResolve(UnitName);
 
-			var xpath = string.Format("//unit[@name=\"{0}\"]/sequence", UnitName);
+			var unitNode = Yaml.FirstOrDefault(y => y.Key == UnitName);
+			if (unitNode != null)
+				foreach (var s in unitNode.Value.Nodes)
+				{
+					var seq = new SequenceData(UnitName, s.Key, s.Value);
+					if (seq.Src != null)
+						LoadAndResolve(seq.Src);
+
+					Sequences[seq.Name] = seq;
+				}
+
+
+/*			var xpath = string.Format("//unit[@name=\"{0}\"]/sequence", UnitName);
 			foreach (XmlElement e in Doc.SelectNodes(xpath))
 			{
 				if (e.HasAttribute("src"))
 					LoadAndResolve(e.GetAttribute("src"));
 				Sequences[e.GetAttribute("name")] = new Sequence(e);
-			}
+			}	*/
 
 			Application.Run(new Form1());
 		}
 	}
-
+/*
 	class Sequence
 	{
 		public int start;
@@ -133,5 +148,5 @@ namespace SequenceEditor
 		}
 
 		public Sequence() { }
-	}
+	}	*/
 }

@@ -1,10 +1,10 @@
 ﻿#region Copyright & License Information
 /*
- * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2010 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation. For more information,
- * see COPYING.
+ * see LICENSE.
  */
 #endregion
 
@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using OpenRA.FileFormats;
+using OpenRA.Graphics;
 
 namespace SequenceEditor
 {
@@ -65,32 +66,34 @@ namespace SequenceEditor
 		{
 			base.OnMouseUp(e);
 
-			if (isDragging && e.Button == MouseButtons.Left)
-			{
-				isDragging = false;
+			//if (isDragging && e.Button == MouseButtons.Left)
+			//{
+			//    isDragging = false;
 
-				/* create a new sequence! */
-				var start = FindFrameAt(clickPos);
-				var end = FindFrameAt(mousePos);
+			//    /* create a new sequence! */
+			//    var start = FindFrameAt(clickPos);
+			//    var end = FindFrameAt(mousePos);
 
-				if (start != null && end != null
-					&& start.Value.First == end.Value.First)
-				{
-					var s = new Sequence()
-					{
-						start = start.Value.Second,
-						length = end.Value.Second - start.Value.Second + 1,
-						shp = start.Value.First
-					};
+			//    if (start != null && end != null
+			//        && start.Value.First == end.Value.First)
+			//    {
+			//        var s = new Sequence()
+			//        {
+			//            start = start.Value.Second,
+			//            length = end.Value.Second - start.Value.Second + 1,
+			//            shp = start.Value.First
+			//        };
 
-					var name = GetTextForm.GetString("Name of new sequence", lastName);
-					if (name == null) return;
+			//        var name = GetTextForm.GetString("Name of new sequence", lastName);
+			//        if (name == null) return;
 
-					Program.Sequences.Add(name, s);
-					lastName = name;
-				}
-			}
+			//        Program.Sequences.Add(name, s);
+			//        lastName = name;
+			//    }
+			//}
 		}
+
+		/* todo: length fixes */
 
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
@@ -104,8 +107,8 @@ namespace SequenceEditor
 				var frameAtPoint = FindFrameAt(e.Location);
 				if (frameAtPoint == null) return;
 				var seq = Program.Sequences
-					.Where(kv => kv.Value.shp == frameAtPoint.Value.First &&
-						frameAtPoint.Value.Second.IsInRange( kv.Value.start, kv.Value.length )).ToArray();
+					.Where(kv => kv.Value.Src == frameAtPoint.Value.First &&
+						frameAtPoint.Value.Second.IsInRange( kv.Value.Start, kv.Value.Length )).ToArray();
 
 				foreach (var s in seq)
 					Program.Sequences.Remove(s.Key);
@@ -114,7 +117,7 @@ namespace SequenceEditor
 			}
 		}
 
-		Sequence tempSequence;
+		SequenceData tempSequence;
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
@@ -138,16 +141,16 @@ namespace SequenceEditor
 			tempSequence = null;
 			if (isDragging)
 			{
-				/* create a new sequence! */
-				var start = FindFrameAt(clickPos);
-				var end = FindFrameAt(mousePos);
+				///* create a new sequence! */
+				//var start = FindFrameAt(clickPos);
+				//var end = FindFrameAt(mousePos);
 
-				if (start != null && end != null 
-					&& start.Value.First == end.Value.First)
-					tempSequence = new Sequence() { 
-						start = start.Value.Second, 
-						length = end.Value.Second - start.Value.Second + 1, 
-						shp = start.Value.First };
+				//if (start != null && end != null 
+				//    && start.Value.First == end.Value.First)
+				//    tempSequence = new Sequence() { 
+				//        start = start.Value.Second, 
+				//        length = end.Value.Second - start.Value.Second + 1, 
+				//        shp = start.Value.First };
 			}
 
 			items.Clear();
@@ -186,17 +189,17 @@ namespace SequenceEditor
 
 			var seqid = 0;
 			var seqs = Program.Sequences.Select(a => a);	/* shorter than teh typename!! */
-			if (tempSequence != null)
-				seqs = seqs.Concat(new[] { new KeyValuePair<string, Sequence>("New sequence...", tempSequence) });
+			/*if (tempSequence != null)
+				seqs = seqs.Concat(new[] { new KeyValuePair<string, Sequence>("New sequence...", tempSequence) });	*/
 
 			foreach (var seq in seqs)
 			{
-				var firstFrame = seq.Value.start;
-				var r = items[seq.Value.shp][firstFrame];
+				var firstFrame = seq.Value.Start;
+				var r = items[seq.Value.Src][firstFrame];
 
-				for (var i = 0; i < seq.Value.length; i++)
+				for (var i = 0; i < seq.Value.Length; i++)
 				{
-					var q = items[seq.Value.shp][i + firstFrame];
+					var q = items[seq.Value.Src][i + firstFrame];
 					e.Graphics.FillRectangle(brushes[seqid], q.Left, q.Top, q.Width, 2);
 				}
 
