@@ -11,6 +11,8 @@
 using System;
 using OpenRA.Mods.RA.Effects;
 using OpenRA.Traits;
+using System.Collections.Generic;
+using OpenRA.Orders;
 
 namespace OpenRA.Mods.RA.Buildings
 {
@@ -22,7 +24,7 @@ namespace OpenRA.Mods.RA.Buildings
 		public object Create(ActorInitializer init) { return new RepairableBuilding(init.self, this); }
 	}
 
-	public class RepairableBuilding : ITick, IResolveOrder, ISync
+	public class RepairableBuilding : ITick, IResolveOrder, ISync, IIssueOrder
 	{
 		[Sync]
 		bool isRepairing = false;
@@ -78,7 +80,17 @@ namespace OpenRA.Mods.RA.Buildings
 			else
 				--remainingTicks;
 		}
-	}
+
+        public IEnumerable<IOrderTargeter> Orders
+        {
+            get { yield return new PaletteOnlyOrderTargeter("Repair"); }
+        }
+
+        public Order IssueOrder(Actor self, IOrderTargeter order, Target target, bool queued)
+        {
+            throw new NotImplementedException();
+        }
+    }
 	public class AllowsBuildingRepairInfo : TraitInfo<AllowsBuildingRepair> {}
 	public class AllowsBuildingRepair {}
 
