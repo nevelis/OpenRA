@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
@@ -29,14 +29,14 @@ namespace OpenRA.Mods.RA.Widgets
         string GetOrderPaletteText()
         {
             var possibleOrders = world.Selection.Actors
-                .Where( a => !a.Destroyed )
+                .Where(a => !a.Destroyed && a.Owner == a.World.LocalPlayer)
                 .SelectMany(a => a.TraitsImplementing<IIssueOrder>())
                 .SelectMany(io => io.Orders)
                 .Select(ot => ot.OrderID)
                 .Distinct();
 
-            return "Orders: \n" 
-                + string.Join( "", possibleOrders.Select(ot => "- {0}\n".F(ot)).ToArray());
+            return "Orders: \n"
+                + string.Join("", possibleOrders.Select(ot => "- {0}\n".F(ot)).ToArray());
         }
     }
 }
