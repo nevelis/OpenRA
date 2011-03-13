@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Traits;
 using OpenRA.FileFormats;
+using OpenRA.Orders;
 
 namespace OpenRA.Mods.RA.Buildings
 {
