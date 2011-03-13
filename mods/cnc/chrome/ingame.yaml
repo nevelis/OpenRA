@@ -49,6 +49,14 @@ Container@INGAME_ROOT:
 			DrawBackground: False
 			RemoveTime:250
 			UseContrast: yes
+		OrdersPalette@ORDERS_PALETTE:
+			Id:ORDERS_PALETTE
+			X: 32
+			Y: 32
+			Width: 200
+			Height: 200
+			Background: dialog4
+			Visible: true
 		ChatEntry@CHAT_ENTRY:
 			Id:CHAT_ENTRY
 			X:250
