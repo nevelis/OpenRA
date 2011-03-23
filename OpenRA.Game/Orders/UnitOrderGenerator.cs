@@ -8,6 +8,7 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Graphics;
@@ -15,11 +16,16 @@ using OpenRA.Traits;
 
 namespace OpenRA.Orders
 {
-	class UnitOrderGenerator : IOrderGenerator
+	public class BaseUnitOrderGenerator : IOrderGenerator
 	{
-		public IEnumerable<Order> Order( World world, int2 xy, MouseInput mi )
+		Func<IOrderTargeter, bool> acceptTargeter;
+		public BaseUnitOrderGenerator( Func<IOrderTargeter, bool> acceptTargeter )
 		{
+			this.acceptTargeter = acceptTargeter;
+		}
 
+        public virtual IEnumerable<Order> Order(World world, int2 xy, MouseInput mi)
+        {
             var underCursor = world.FindUnitsAtMouse(mi.Location)
                 .Where(a => a.HasTrait<ITargetable>())
                 .OrderByDescending(
@@ -30,7 +36,7 @@ namespace OpenRA.Orders
                 .FirstOrDefault();
 
             var orders = world.Selection.Actors
-                .Select(a => OrderForUnit(a, xy, mi, underCursor))
+                .Select(a => OrderForUnit(a, xy, mi, underCursor, acceptTargeter))
                 .Where(o => o != null)
                 .ToArray();
 
@@ -65,7 +71,7 @@ namespace OpenRA.Orders
 					useSelect = true;
 
 			var orders = world.Selection.Actors
-				.Select(a => OrderForUnit(a, xy, mi, underCursor))
+				.Select(a => OrderForUnit(a, xy, mi, underCursor, acceptTargeter))
 				.Where(o => o != null)
 				.ToArray();
 
@@ -74,7 +80,7 @@ namespace OpenRA.Orders
 			return orders[0].cursor ?? ((useSelect) ? "select" : "default");
 		}
 
-		static UnitOrderResult OrderForUnit( Actor self, int2 xy, MouseInput mi, Actor underCursor )
+		static UnitOrderResult OrderForUnit( Actor self, int2 xy, MouseInput mi, Actor underCursor, Func<IOrderTargeter,bool> acceptTargeter )
 		{
 			if (self.Owner != self.World.LocalPlayer)
 				return null;
@@ -89,17 +95,19 @@ namespace OpenRA.Orders
 						.Select( x => new { Trait = trait, Order = x } ) )
 					.OrderByDescending( x => x.Order.OrderPriority ) )
 				{
-					var actorsAt = self.World.ActorMap.GetUnitsAt( xy ).ToList();
-					
+					var actorsAt = self.World.ActorMap.GetUnitsAt( xy ).ToList();				
 					var forceAttack = mi.Modifiers.HasModifier(Modifiers.Ctrl);
 					var forceMove = mi.Modifiers.HasModifier(Modifiers.Alt);
 					var forceQueue = mi.Modifiers.HasModifier(Modifiers.Shift);
-					string cursor = null;
-					if( underCursor != null )
-						if (o.Order.CanTargetActor(self, underCursor, forceAttack, forceMove, forceQueue, ref cursor))
+					
+					if (acceptTargeter(o.Order))
+					{
+						string cursor = null;
+						if( underCursor != null && o.Order.CanTargetActor(self, underCursor, forceAttack, forceMove, forceQueue, ref cursor))
 							return new UnitOrderResult( self, o.Order, o.Trait, cursor, Target.FromActor( underCursor ) );
-					if (o.Order.CanTargetLocation(self, xy, actorsAt, forceAttack, forceMove, forceQueue, ref cursor))
-						return new UnitOrderResult( self, o.Order, o.Trait, cursor, Target.FromCell( xy ) );
+						if (o.Order.CanTargetLocation(self, xy, actorsAt, forceAttack, forceMove, forceQueue, ref cursor))
+							return new UnitOrderResult( self, o.Order, o.Trait, cursor, Target.FromCell( xy ) );
+					}
 				}
 			}
 
@@ -132,5 +140,35 @@ namespace OpenRA.Orders
 				this.target = target;
 			}
 		}
+	}
+
+	public class UnitOrderGenerator : BaseUnitOrderGenerator 
+	{
+		public UnitOrderGenerator() : base(_ => true) { }
+	}
+
+	public class RestrictedUnitOrderGenerator : BaseUnitOrderGenerator
+	{
+		public RestrictedUnitOrderGenerator(string orderId) : base(ot => ot.OrderID == orderId) { }
+
+        static readonly Order[] NoOrders = {};
+        public override IEnumerable<Order> Order(World world, int2 xy, MouseInput mi)
+        {
+            if (mi.Button == MouseButton.Right)
+            {
+                world.CancelInputMode();
+                return NoOrders;
+            }
+
+            if (mi.Button == MouseButton.Left)
+            {
+                if (!mi.Modifiers.HasModifier(Modifiers.Shift))
+                    world.CancelInputMode();
+
+                mi.Button = MouseButton.Right;
+            }
+
+            return base.Order(world, xy, mi);
+        }
 	}
 }
