@@ -44,6 +44,7 @@ namespace OpenRA.Traits
     public interface IOrderTargeter
     {
         string OrderID { get; }
+		bool IsImmediate { get; }
         int OrderPriority { get; }
         bool CanTargetActor(Actor self, Actor target, bool forceAttack, bool forceMove, bool forceQueue, ref string cursor);
         bool CanTargetLocation(Actor self, int2 location, List<Actor> actorsAtLocation, bool forceAttack, bool forceMove, bool forceQueue, ref string cursor);

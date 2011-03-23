@@ -234,7 +234,9 @@ namespace OpenRA.Mods.RA
 
 				return true;
 			}
+
 			public bool IsQueued { get; protected set; }
+            public bool IsImmediate { get { return false; } }   // it might be interesting to have this actually be immediate...
 		}
 	}
 }

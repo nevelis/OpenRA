@@ -16,6 +16,7 @@ using OpenRA.FileFormats;
 using OpenRA.Mods.RA.Activities;
 using OpenRA.Traits;
 using OpenRA.Traits.Activities;
+using OpenRA.Orders;
 
 namespace OpenRA.Mods.RA.Move
 {
@@ -451,6 +452,8 @@ namespace OpenRA.Mods.RA.Move
 
                 return true;
             }
+
+            public bool IsImmediate { get { return false; } }
         }
 
         public Activity ScriptedMove(int2 cell) { return new Move(cell); }
