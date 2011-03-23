@@ -59,7 +59,10 @@ namespace OpenRA.Mods.RA.Activities
 				var a = w.CreateActor( ToActor, init );
 				
 				if (selected)
+				{
+					w.Selection.Remove(self);
 					w.Selection.Add(w, a);
+				}
 			});
 			
 			return this;

@@ -43,7 +43,7 @@ Container@INGAME_ROOT:
 		ChatDisplay@CHAT_DISPLAY:
 			Id:CHAT_DISPLAY
 			X:250
-			Y:WINDOW_BOTTOM - HEIGHT - 30
+			Y:WINDOW_BOTTOM - HEIGHT - 30 - 35
 			Width: 760
 			Height: 200
 			DrawBackground: False
@@ -51,16 +51,16 @@ Container@INGAME_ROOT:
 			UseContrast: yes
 		OrdersPalette@ORDERS_PALETTE:
 			Id:ORDERS_PALETTE
-			X: 32
-			Y: 32
+			X:(WINDOW_RIGHT - WIDTH) / 2
+			Y:WINDOW_BOTTOM - HEIGHT - 20
 			Width: 200
-			Height: 200
+			Height: 32
 			Background: dialog4
 			Visible: true
 		ChatEntry@CHAT_ENTRY:
 			Id:CHAT_ENTRY
 			X:250
-			Y:WINDOW_BOTTOM - HEIGHT
+			Y:WINDOW_BOTTOM - HEIGHT - 35
 			Width: 760
 			Height: 30
 			UseContrast: yes

@@ -50,6 +50,7 @@ World:
 		Widget: INGAME_ROOT
 	CncMenuPaletteEffect:
 	ScreenShaker:
+	UpdateOrderPalette:
 	NukePaletteEffect:
 	CncWaterPaletteRotation:
 	BuildingInfluence:
