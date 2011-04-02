@@ -18,6 +18,7 @@ namespace OpenRA.Mods.RA
 	public class SidebarButtonWidget : ButtonWidget
 	{
 		public string Image = "";
+		public Action<Rectangle> DrawTooltip = (rect) => {};
 		
 		readonly World world;
 		[ObjectCreator.UseCtor]
@@ -38,7 +39,13 @@ namespace OpenRA.Mods.RA
 			var state = Depressed ? "pressed" : 
 						RenderBounds.Contains(Viewport.LastMousePos) ? "hover" : "normal";
 			
-			WidgetUtils.DrawRGBA(ChromeProvider.GetImage(Image + "-" + world.LocalPlayer.Country.Race, state), RenderOrigin);
+			var image = ChromeProvider.GetImage(Image + "-" + world.LocalPlayer.Country.Race, state);
+			
+			var rect = new Rectangle(RenderBounds.X, RenderBounds.Y, (int)image.size.X, (int)image.size.Y);
+			if (rect.Contains(Viewport.LastMousePos))
+				DrawTooltip(rect);
+			
+			WidgetUtils.DrawRGBA(image, RenderOrigin);
 		}
 	}
 }
