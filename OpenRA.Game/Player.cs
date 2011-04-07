@@ -28,6 +28,7 @@ namespace OpenRA
 		public WinState WinState = WinState.Undefined;
 
 		public readonly string Palette;
+        public readonly string SelectionPalette;
         public readonly ColorRamp ColorRamp;
 
 		public readonly string PlayerName;
@@ -46,7 +47,9 @@ namespace OpenRA
 		{
 			World = world;
 			Index = index;
+
 			Palette = "player" + index;
+            SelectionPalette = "select" + index;
 			InternalName = pr.Name;
 			PlayerRef = pr;
 			

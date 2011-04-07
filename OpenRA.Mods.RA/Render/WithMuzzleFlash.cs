@@ -39,7 +39,7 @@ namespace OpenRA.Mods.RA.Render
 				render.anims.Add("muzzle{0}".F(muzzleFlashes.Count), new RenderSimple.AnimationWithOffset(
 					muzzleFlash,
 					() => Combat.GetTurretPosition(self, facing, turret),
-					() => !isShowing));
+                    () => !isShowing) { Palette = "effect" });
 
 				muzzleFlashes.Add(muzzleFlash);
 			}

@@ -149,6 +149,7 @@
 	AppearsOnRadar:
 	Selectable:
 		Priority: 3
+		BorderWidth: 2
 	TargetableBuilding:
 		TargetTypes: Ground
 	Building:
@@ -193,6 +194,7 @@
 		Range: 8
 	Selectable:
 		Priority: 1
+		BorderWidth: 2
 	TargetableBuilding:
 		TargetTypes: Ground
 	RenderBuildingWall:

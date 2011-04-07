@@ -16,6 +16,7 @@ namespace OpenRA.Traits
 	{
 		public readonly string BasePalette = null;
 		public readonly string BaseName = "player";
+        public readonly string SelectName = "select";
 		public readonly PaletteFormat PaletteFormat = PaletteFormat.ra;
 
 		public object Create( ActorInitializer init ) { return new PlayerColorPalette( init.self.Owner, this ); }
@@ -37,6 +38,10 @@ namespace OpenRA.Traits
 			var newpal = new Palette(wr.GetPalette(info.BasePalette),
 			                 new PlayerColorRemap(owner.ColorRamp, info.PaletteFormat));
 			wr.AddPalette(paletteName, newpal);
+
+            var selpal = new Palette(wr.GetPalette(info.BasePalette),
+                new SelectionColorRemap(owner.ColorRamp.GetColor(0)));
+            wr.AddPalette("{0}{1}".F(info.SelectName, owner.Index), selpal);
 		}
 	}
 }

@@ -50,4 +50,15 @@ namespace OpenRA.FileFormats
 				? c : original;
 		}
 	}
+
+    public class SelectionColorRemap : IPaletteRemap
+    {
+        Color c;
+        public SelectionColorRemap(Color c) { this.c = c; }
+
+        public Color GetRemappedColor(Color original, int index)
+        {
+            return original.A == 255 ? c : Color.Transparent;
+        }
+    }
 }

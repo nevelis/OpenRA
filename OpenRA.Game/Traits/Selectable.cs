@@ -18,11 +18,13 @@ namespace OpenRA.Traits
 	{
 		public readonly int Priority = 10;
 		public readonly int[] Bounds = null;
+        public readonly int BorderWidth = 1;
+
 		[VoiceReference]
 		public readonly string Voice = null;
 	}
 
-	public class Selectable : IPostRenderSelection
+	public class Selectable : IPreRenderSelection, IPostRenderSelection
 	{
 		// depends on the order of pips in TraitsInterfaces.cs!
 		static readonly string[] pipStrings = { "pip-empty", "pip-green", "pip-yellow", "pip-red", "pip-gray" };
@@ -80,15 +82,15 @@ namespace OpenRA.Traits
 		
 		void DrawSelectionBox(Actor self, float2 xy, float2 Xy, float2 xY, float2 XY, Color c)
 		{
-			Game.Renderer.LineRenderer.DrawLine(xy, xy + new float2(4, 0), c, c);
-			Game.Renderer.LineRenderer.DrawLine(xy, xy + new float2(0, 4), c, c);
-			Game.Renderer.LineRenderer.DrawLine(Xy, Xy + new float2(-4, 0), c, c);
-			Game.Renderer.LineRenderer.DrawLine(Xy, Xy + new float2(0, 4), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(xy, xy + new float2(4, 0), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(xy, xy + new float2(0, 4), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(Xy, Xy + new float2(-4, 0), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(Xy, Xy + new float2(0, 4), c, c);
 
-			Game.Renderer.LineRenderer.DrawLine(xY, xY + new float2(4, 0), c, c);
-			Game.Renderer.LineRenderer.DrawLine(xY, xY + new float2(0, -4), c, c);
-			Game.Renderer.LineRenderer.DrawLine(XY, XY + new float2(-4, 0), c, c);
-			Game.Renderer.LineRenderer.DrawLine(XY, XY + new float2(0, -4), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(xY, xY + new float2(4, 0), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(xY, xY + new float2(0, -4), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(XY, XY + new float2(-4, 0), c, c);
+            //Game.Renderer.LineRenderer.DrawLine(XY, XY + new float2(0, -4), c, c);
 		}
 
 		void DrawSelectionBar(Actor self, float2 xy, float2 Xy, float value, Color barColor)
@@ -255,5 +257,24 @@ namespace OpenRA.Traits
 			}
 		}
 		
+        public void RenderBeforeWorld(WorldRenderer wr, Actor self)
+        {
+            // do something awesome.
+            var sprites = self.Render();
+            var pal = self.Owner.SelectionPalette;
+            var width = self.Info.Traits.Get<SelectableInfo>().BorderWidth;
+            foreach (var s in sprites)
+            {
+                if (s.Palette == "shadow" || s.Palette == "effect") continue;
+                s.Sprite.DrawAt(wr, s.Pos + new float2(-width, -width), pal);
+                s.Sprite.DrawAt(wr, s.Pos + new float2(width, -width), pal);
+                s.Sprite.DrawAt(wr, s.Pos + new float2(-width, width), pal);
+                s.Sprite.DrawAt(wr, s.Pos + new float2(width, width), pal);
+                s.Sprite.DrawAt(wr, s.Pos + new float2(0, -width), pal);
+                s.Sprite.DrawAt(wr, s.Pos + new float2(0, width), pal);
+                s.Sprite.DrawAt(wr, s.Pos + new float2(-width, 0), pal);
+                s.Sprite.DrawAt(wr, s.Pos + new float2(width, 0), pal);
+            }
+        }
 	}
 }

@@ -73,7 +73,8 @@ namespace OpenRA.Traits
 					Renderable ret = a.Image( self );
 					if (Info.Scale != 1f)
 						ret = ret.WithScale(Info.Scale).WithPos(ret.Pos + 0.5f*ret.Sprite.size*(1 - Info.Scale));
-					yield return ( Info.Palette == null ) ? ret : ret.WithPalette(Info.Palette);
+					yield return ( Info.Palette == null || ret.Palette != null ) 
+                        ? ret : ret.WithPalette(Info.Palette);
 				}
 		}
 
@@ -105,6 +106,7 @@ namespace OpenRA.Traits
 			public Func<float2> OffsetFunc;
 			public Func<bool> DisableFunc;
 			public int ZOffset;
+            public string Palette;
 
 			public AnimationWithOffset( Animation a )
 				: this( a, null, null )
@@ -122,6 +124,8 @@ namespace OpenRA.Traits
 			{
 				var r = Util.Centered( self, Animation.Image, self.CenterLocation 
 					+ (OffsetFunc != null ? OffsetFunc() : float2.Zero) );
+                if (Palette != null)
+                    r = r.WithPalette(Palette);
 				return ZOffset != 0 ? r.WithZOffset(ZOffset) : r;
 			}
 
