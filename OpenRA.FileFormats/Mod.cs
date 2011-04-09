@@ -8,11 +8,8 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.IO;
 
 namespace OpenRA.FileFormats
 {
@@ -25,21 +22,23 @@ namespace OpenRA.FileFormats
 		public string Requires;
 		public bool Standalone = false;
 
-		public static readonly Dictionary<string, Mod> AllMods = ValidateMods(Directory.GetDirectories("mods").Select(x => x.Substring(5)).ToArray());
+        public static readonly Dictionary<string, Mod> AllMods = ValidateMods(
+            P.E("mods").GetDirs().Select(x => x.BaseName()).ToArray());
 
-		public static Dictionary<string, Mod> ValidateMods(string[] mods)
+		public static Dictionary<string, Mod> ValidateMods(PathElement[] mods)
 		{
 			var ret = new Dictionary<string, Mod>();
 			foreach (var m in mods)
 			{
-				if (!File.Exists("mods" + Path.DirectorySeparatorChar + m + Path.DirectorySeparatorChar + "mod.yaml"))
+                var manifestFile = P.E("mods") / m / "mod.yaml";
+				if (!manifestFile.Exists())
 					continue;
 
-				var yaml = new MiniYaml(null, MiniYaml.FromFile("mods" + Path.DirectorySeparatorChar + m + Path.DirectorySeparatorChar + "mod.yaml"));
+				var yaml = new MiniYaml(null, MiniYaml.FromFile(manifestFile));
 				if (!yaml.NodesDict.ContainsKey("Metadata"))
 					continue;
 
-				ret.Add(m, FieldLoader.Load<Mod>(yaml.NodesDict["Metadata"]));
+				ret.Add(m.ToString(), FieldLoader.Load<Mod>(yaml.NodesDict["Metadata"]));
 			}
 			return ret;
 		}

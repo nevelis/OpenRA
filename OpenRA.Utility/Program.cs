@@ -14,6 +14,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using OpenRA.FileFormats;
 
 namespace OpenRA.Utility
 {
@@ -63,7 +64,8 @@ namespace OpenRA.Utility
             var supportDir = GetNamedArg(args, "--SupportDir");
             if (supportDir != null)
             {
-                Log.LogPath = Path.Combine(supportDir.Replace("\"", ""), "Logs");
+                // hack: we're getting stray quotes here.
+                Log.LogPath = P.E(supportDir.Replace("\"","")) / "Logs";
                 Console.WriteLine("LogPath: {0}", Log.LogPath);
             }
 

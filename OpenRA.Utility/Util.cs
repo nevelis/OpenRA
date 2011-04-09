@@ -32,9 +32,9 @@ namespace OpenRA.Utility
 
 			foreach (string s in files)
 			{
-				var destFile = Path.Combine(destPath, s);
+                var destFile = P.E(destPath) / s;
 				using (var sourceStream = FileSystem.Open(s))
-				using (var destStream = File.Create(destFile))
+				using (var destStream = destFile.Create())
 				{
 					Console.WriteLine("Status: Extracting {0}", s);
 					destStream.Write(sourceStream.ReadAllBytes());
@@ -51,18 +51,19 @@ namespace OpenRA.Utility
             }
         }
 
-        public static void ExtractZip(this ZipInputStream z, string destPath, List<string> extracted)
+        public static void ExtractZip(this ZipInputStream z, PathElement destPath, List<string> extracted)
 		{
             foreach (var entry in z.GetEntries())
             {
                 if (!entry.IsFile) continue;
 
                 Console.WriteLine("Status: Extracting {0}", entry.Name);
-                Directory.CreateDirectory(Path.Combine(destPath, Path.GetDirectoryName(entry.Name)));
-                var path = Path.Combine(destPath, entry.Name);
-                extracted.Add(path);
+                var destDir = (destPath / entry.Name).DirName();
+                destDir.CreateDir();
+                var destFilename = destPath / entry.Name;
+                extracted.Add(destFilename.ToString());
 
-                using (var f = File.Create(path))
+                using (var f = destFilename.Create())
                 {
                     int bufSize = 2048;
                     byte[] buf = new byte[bufSize];

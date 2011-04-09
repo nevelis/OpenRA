@@ -8,12 +8,11 @@
  */
 #endregion
 
-using System.Drawing;
+using System.IO;
 using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.Network;
 using OpenRA.Widgets;
-using System.IO;
 
 namespace OpenRA.Mods.RA.Widgets.Delegates
 {
@@ -89,26 +88,22 @@ namespace OpenRA.Mods.RA.Widgets.Delegates
 			Game.Utilities.PromptFilepathAsync("Select an OpenRA map file", path =>
 			{
 				if (!string.IsNullOrEmpty(path))
-					Game.RunAfterTick(() => InstallMapInner(path));
+					Game.RunAfterTick(() => InstallMapInner(P.E(path)));
 			});
 			return true;
 		}
 		
-		void InstallMapInner(string path)
+		void InstallMapInner(PathElement path)
 		{
-			var toPath = "{0}{1}maps{1}{2}{1}{3}"
-			          .F(Game.SupportDir,Path.DirectorySeparatorChar, 
-			             Game.modData.Manifest.Mods[0],
-			             Path.GetFileName(path));
+            var mod = Game.modData.Manifest.Mods[0];
+            var toPath = Game.SupportDir / "maps" / mod / path.BaseName();
 			
 			// Create directory if required
-			var dir = Path.GetDirectoryName(toPath);
-			if (!Directory.Exists(dir))
-				Directory.CreateDirectory(dir);
+            toPath.DirName().Create();
 			
 			// TODO: Attempt to mount the map and verify that
 			// it is a valid Game.modData.Manifest.Mods[0] map.
-			File.Copy(path, toPath, true);
+			File.Copy(path.ToString(), toPath.ToString(), true);
 			Game.modData.ReloadMaps();
 			EnumerateMaps();
 		}

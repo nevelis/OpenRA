@@ -99,9 +99,10 @@ namespace OpenRA.GameRules
 		public DebugSettings Debug = new DebugSettings();
 		public KeyboardSettings Keyboard = new KeyboardSettings();
 		public Dictionary<string, object> Sections;
-		public Settings(string file, Arguments args)
+
+		public Settings(PathElement file, Arguments args)
 		{			
-			SettingsFile = file;
+			SettingsFile = file.ToString();
 			Sections = new Dictionary<string, object>()
 			{
 				{"Player", Player},
@@ -123,9 +124,8 @@ namespace OpenRA.GameRules
 				Console.WriteLine( "Ignoring unknown field `{0}` on `{1}`".F( s, f.Name ) );
 			};
 			
-			if (File.Exists(SettingsFile))
+			if (file.Exists())
 			{
-				//Console.WriteLine("Loading settings file {0}",SettingsFile);
 				var yaml = MiniYaml.DictFromFile(SettingsFile);
 				
 				foreach (var kv in Sections)

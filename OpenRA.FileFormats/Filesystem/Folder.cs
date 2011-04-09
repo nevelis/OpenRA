@@ -10,7 +10,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System;
 
 namespace OpenRA.FileFormats
 {
@@ -35,8 +34,7 @@ namespace OpenRA.FileFormats
 		{
 			this.path = path;
 			this.priority = priority;
-			if (!Directory.Exists(path))
-				Directory.CreateDirectory(path);
+			Directory.CreateDirectory(path);
 		}
 
 		public Stream GetContent(string filename)
@@ -45,11 +43,11 @@ namespace OpenRA.FileFormats
 			catch { return null; }
 		}
 
-		public IEnumerable<uint> AllFileHashes()
-		{
-			foreach( var filename in Directory.GetFiles( path, "*", SearchOption.TopDirectoryOnly ) )
-				yield return PackageEntry.HashFilename( Path.GetFileName(filename) );
-		}
+        public IEnumerable<uint> AllFileHashes()
+        {
+            foreach (var filename in Directory.GetFiles(path))
+                yield return PackageEntry.HashFilename(Path.GetFileName(filename));
+        }
 		
 		public bool Exists(string filename)
 		{
@@ -64,8 +62,7 @@ namespace OpenRA.FileFormats
 		
 		public void Write(Dictionary<string, byte[]> contents)
 		{
-			if (!Directory.Exists(path))
-				Directory.CreateDirectory(path);
+			Directory.CreateDirectory(path);
 
 			foreach (var file in contents)
 				using (var dataStream = File.Create(Path.Combine(path, file.Key)))

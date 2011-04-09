@@ -148,6 +148,11 @@ namespace OpenRA.FileFormats
 			return FromStream( stream ).ToDictionary( x => x.Key, x => x.Value );
 		}
 
+        public static List<MiniYamlNode> FromFile(PathElement path)
+        {
+            return FromFile(path.ToString());
+        }
+
 		public static List<MiniYamlNode> FromFile( string path )
 		{			
 			return FromLines(File.ReadAllLines( path ), path);

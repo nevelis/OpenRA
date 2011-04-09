@@ -87,27 +87,30 @@ namespace OpenRA
 			return map;
 		}
 		
-        public static IEnumerable<string> FindMapsIn(string dir)
+        public static IEnumerable<PathElement> FindMapsIn(PathElement dir)
         {
-            string[] NoMaps = { };
+            PathElement[] NoMaps = { };
 
-            if (!Directory.Exists(dir))
+            if (!dir.Exists())
                 return NoMaps;
 
-            return Directory.GetDirectories(dir)
-                .Concat(Directory.GetFiles(dir, "*.zip"))
-                .Concat(Directory.GetFiles(dir, "*.oramap"));
+            return Exts.Concat(
+                dir.GetDirs(),
+                dir.GetFiles("*.zip"),
+                dir.GetFiles("*.oramap"));
         }
+
+        static PathElement ModsRoot = P.E("mods");
 
 		Dictionary<string, Map> FindMaps(string[] mods)
 		{
-            var paths = mods.SelectMany(p => FindMapsIn("mods{0}{1}{0}maps{0}".F(Path.DirectorySeparatorChar, p)))
-				.Concat(mods.SelectMany(p => FindMapsIn("{1}maps{0}{2}{0}".F(Path.DirectorySeparatorChar, Game.SupportDir, p))));
+            var paths = mods.SelectMany(m => FindMapsIn(ModsRoot / m / "maps"))
+                .Concat(mods.SelectMany(m => FindMapsIn(Game.SupportDir / "maps" / m)));
 			
 			Dictionary<string, Map> ret = new Dictionary<string, Map>();
 			foreach (var path in paths)
 			{
-				var map = new Map(path);
+				var map = new Map(path.ToString());
 				if (ret.ContainsKey(map.Uid))
 					System.Console.WriteLine("Ignoring duplicate map: {0}", path);
 				else

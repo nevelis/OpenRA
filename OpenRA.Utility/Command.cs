@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using ICSharpCode.SharpZipLib;
 using ICSharpCode.SharpZipLib.Zip;
 using OpenRA.GameRules;
+using OpenRA.FileFormats;
 
 namespace OpenRA.Utility
 {
@@ -29,7 +30,7 @@ namespace OpenRA.Utility
 			}
 
 			var zipFile = args[1];
-			var dest = args[2];
+			var dest = P.E(args[2]);
 			
 			if (!File.Exists(zipFile))
 			{
@@ -52,16 +53,16 @@ namespace OpenRA.Utility
 			Console.WriteLine("Status: Completed");
 		}
 
-		static void InstallPackages(string fromPath, string toPath,
+		static void InstallPackages(PathElement fromPath, PathElement toPath,
 			string[] filesToCopy, string[] filesToExtract, string packageToMount)
 		{
-			if (!Directory.Exists(toPath))
-				Directory.CreateDirectory(toPath);
+            toPath.CreateDir();
 
-			Util.ExtractFromPackage(fromPath, packageToMount, filesToExtract, toPath);
+			Util.ExtractFromPackage(fromPath.ToString(), packageToMount, filesToExtract, toPath.ToString());
 			foreach (var file in filesToCopy)
 			{
-				if (!File.Exists(Path.Combine(fromPath, file)))
+                var fromFilename = fromPath / file;
+                if (!fromFilename.Exists())
 				{
 					Console.WriteLine("Error: Could not find {0}", file);
 					return;
@@ -69,12 +70,14 @@ namespace OpenRA.Utility
 
 				Console.WriteLine("Status: Extracting {0}", file.ToLowerInvariant());
 				File.Copy(
-					Path.Combine(fromPath, file),
-					Path.Combine(toPath, Path.GetFileName(file).ToLowerInvariant()), true);
+					fromFilename.ToString(),
+					(toPath / P.E(file.ToLowerInvariant()).BaseName()).ToString(), true);   // some expressions do not get clearer.
 			}
 
 			Console.WriteLine("Status: Completed");
 		}
+
+        // todo: push these file lists into the mod manifests themselves.
 		
 		public static void InstallRAPackages(string[] args)
 		{
@@ -84,7 +87,7 @@ namespace OpenRA.Utility
 				return;
 			}
 
-			InstallPackages(args[1], args[2],
+			InstallPackages(P.E(args[1]), P.E(args[2]),
 				new string[] { "INSTALL/REDALERT.MIX" },
 				new string[] { "conquer.mix", "russian.mix", "allies.mix", "sounds.mix",
 					"scores.mix", "snow.mix", "interior.mix", "temperat.mix" },
@@ -99,7 +102,7 @@ namespace OpenRA.Utility
 				return;
 			}
 
-			InstallPackages(args[1], args[2],
+			InstallPackages(P.E(args[1]), P.E(args[2]),
 				new string[] { "CONQUER.MIX", "DESERT.MIX", "GENERAL.MIX", "SCORES.MIX",
 					"SOUNDS.MIX", "TEMPERAT.MIX", "WINTER.MIX" },
 				new string[] { "cclocal.mix", "speech.mix", "tempicnh.mix", "updatec.mix" },
@@ -129,8 +132,8 @@ namespace OpenRA.Utility
 			
 			var section = args[2].Split('.')[0];
 			var field = args[2].Split('.')[1];
-			string expandedPath = args[1].Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.Personal));
-			var settings = new Settings(Path.Combine(expandedPath,"settings.yaml"), Arguments.Empty);
+			var expandedPath = P.E(args[1]).ExpandHomeDir();
+			var settings = new Settings(expandedPath / "settings.yaml", Arguments.Empty);
 			var result = settings.Sections[section].GetType().GetField(field).GetValue(settings.Sections[section]);
 			Console.WriteLine(result);
 		}

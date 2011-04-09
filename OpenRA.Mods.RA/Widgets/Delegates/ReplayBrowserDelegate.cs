@@ -35,14 +35,14 @@ namespace OpenRA.Mods.RA.Widgets.Delegates
 
 			/* find some replays? */
 			var rl = widget.GetWidget<ScrollPanelWidget>("REPLAY_LIST");
-			var replayDir = Path.Combine(Game.SupportDir, "Replays");
+            var replayDir = Game.SupportDir / "Replays";
 
 			var template = widget.GetWidget<LabelWidget>("REPLAY_TEMPLATE");
 			CurrentReplay = null;
 
 			rl.RemoveChildren();
-			if (Directory.Exists(replayDir))
-				foreach (var replayFile in Directory.GetFiles(replayDir, "*.rep").Reverse())
+			if (replayDir.Exists())
+				foreach (var replayFile in replayDir.GetFiles("*.rep").Reverse())
 					AddReplay(rl, replayFile, template);
 
 			widget.GetWidget("WATCH_BUTTON").OnMouseUp = mi =>
@@ -99,13 +99,13 @@ namespace OpenRA.Mods.RA.Widgets.Delegates
 			}
 		}
 
-		void AddReplay(ScrollPanelWidget list, string filename, LabelWidget template)
+		void AddReplay(ScrollPanelWidget list, PathElement filename, LabelWidget template)
 		{
 			var entry = template.Clone() as LabelWidget;
 			entry.Id = "REPLAY_";
-			entry.GetText = () => "   {0}".F(Path.GetFileName(filename));
-			entry.GetBackground = () => (CurrentReplay == filename) ? "dialog2" : null;
-			entry.OnMouseDown = mi => { if (mi.Button != MouseButton.Left) return false; CurrentReplay = filename; return true; };
+			entry.GetText = () => "   {0}".F(Path.GetFileName(filename.ToString()));
+			entry.GetBackground = () => (CurrentReplay == filename.ToString()) ? "dialog2" : null;
+			entry.OnMouseDown = mi => { if (mi.Button != MouseButton.Left) return false; CurrentReplay = filename.ToString(); return true; };
 			entry.IsVisible = () => true;
 			list.AddChild(entry);
 		}

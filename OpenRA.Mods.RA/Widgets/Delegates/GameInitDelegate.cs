@@ -123,56 +123,56 @@ namespace OpenRA.Mods.RA.Widgets.Delegates
 				ShowDownloadError(window, "Installing from CD not supported");
 		}
 
-		void ShowDownloadDialog()
-		{
-			var window = Widget.OpenWindow("INIT_DOWNLOAD");
-			var status = window.GetWidget<LabelWidget>("STATUS");
-			status.GetText = () => "Initializing...";
-			var progress = window.GetWidget<ProgressBarWidget>("PROGRESS");
+        void ShowDownloadDialog()
+        {
+            var window = Widget.OpenWindow("INIT_DOWNLOAD");
+            var status = window.GetWidget<LabelWidget>("STATUS");
+            status.GetText = () => "Initializing...";
+            var progress = window.GetWidget<ProgressBarWidget>("PROGRESS");
 
-			// Save the package to a temp file
-			var file = Path.GetTempPath() + Path.DirectorySeparatorChar + Path.GetRandomFileName();					
-			Action<DownloadProgressChangedEventArgs> onDownloadChange = i =>
-			{
-				status.GetText = () => "Downloading {1}/{2} kB ({0}%)".F(i.ProgressPercentage, i.BytesReceived/1024, i.TotalBytesToReceive/1024);
-				progress.Percentage = i.ProgressPercentage;
-			};
-			
-			Action<AsyncCompletedEventArgs, bool> onDownloadComplete = (i, cancelled) =>
-			{
-				if (i.Error != null)
-					ShowDownloadError(window, i.Error.Message);
-				else if (!cancelled)
-				{
-					// Automatically extract
-					status.GetText = () => "Extracting...";
-					progress.Indeterminate = true;
-					var error = false;
-					Action<string> parseOutput = s => 
-				    {
-				    	if (s.StartsWith("Error"))
-						{
-							error = true;
-							ShowDownloadError(window, s);
-						}
-						if (s.StartsWith("Status"))
-							window.GetWidget<LabelWidget>("STATUS").GetText = () => s.Substring(7).Trim();
-					};
-					
-					Action onComplete = () =>
-					{
-						if (!error)
-							Game.RunAfterTick(ContinueLoading);
-					};
-					
-					Game.RunAfterTick(() => Game.Utilities.ExtractZipAsync(file, FileSystem.SpecialPackageRoot+Info.PackagePath, parseOutput, onComplete));
-				}
-			};
-			
-			var dl = new Download(Info.PackageURL, file, onDownloadChange, onDownloadComplete);
-			window.GetWidget("CANCEL").OnMouseUp = mi => { dl.Cancel(); ShowInstallMethodDialog(); return true; };
-			window.GetWidget("RETRY").OnMouseUp = mi => { dl.Cancel(); ShowDownloadDialog(); return true; };
-		}
+            // Save the package to a temp file
+            var file = P.MakeTempFilename();
+            Action<DownloadProgressChangedEventArgs> onDownloadChange = i =>
+            {
+                status.GetText = () => "Downloading {1}/{2} kB ({0}%)".F(i.ProgressPercentage, i.BytesReceived / 1024, i.TotalBytesToReceive / 1024);
+                progress.Percentage = i.ProgressPercentage;
+            };
+
+            Action<AsyncCompletedEventArgs, bool> onDownloadComplete = (i, cancelled) =>
+            {
+                if (i.Error != null)
+                    ShowDownloadError(window, i.Error.Message);
+                else if (!cancelled)
+                {
+                    // Automatically extract
+                    status.GetText = () => "Extracting...";
+                    progress.Indeterminate = true;
+                    var error = false;
+                    Action<string> parseOutput = s =>
+                    {
+                        if (s.StartsWith("Error"))
+                        {
+                            error = true;
+                            ShowDownloadError(window, s);
+                        }
+                        if (s.StartsWith("Status"))
+                            window.GetWidget<LabelWidget>("STATUS").GetText = () => s.Substring(7).Trim();
+                    };
+
+                    Action onComplete = () =>
+                    {
+                        if (!error)
+                            Game.RunAfterTick(ContinueLoading);
+                    };
+
+                    Game.RunAfterTick(() => Game.Utilities.ExtractZipAsync(file.ToString(), FileSystem.SpecialPackageRoot + Info.PackagePath, parseOutput, onComplete));
+                }
+            };
+
+            var dl = new Download(Info.PackageURL, file.ToString(), onDownloadChange, onDownloadComplete);
+            window.GetWidget("CANCEL").OnMouseUp = mi => { dl.Cancel(); ShowInstallMethodDialog(); return true; };
+            window.GetWidget("RETRY").OnMouseUp = mi => { dl.Cancel(); ShowDownloadDialog(); return true; };
+        }
 		
 		void ShowDownloadError(Widget window, string e)
 		{

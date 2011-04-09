@@ -55,9 +55,9 @@ namespace OpenRA
 		public static void JoinServer(string host, int port)
 		{
 			var replayFilename = ChooseReplayFilename();
-			string path = Path.Combine( Game.SupportDir, "Replays" );
-			if( !Directory.Exists( path ) ) Directory.CreateDirectory( path );
-			var replayFile = File.Create( Path.Combine( path, replayFilename ) );
+			var path = Game.SupportDir / "Replays";
+            path.CreateDir();
+            var replayFile = (path / replayFilename).Create();
 
 			JoinInner(new OrderManager(host, port, 
 				new ReplayRecorderConnection(new NetworkConnection(host, port), replayFile)));
@@ -222,18 +222,17 @@ namespace OpenRA
 		{
 			AppDomain.CurrentDomain.AssemblyResolve += FileSystem.ResolveAssembly;
 
-			var defaultSupport = Environment.GetFolderPath(Environment.SpecialFolder.Personal)
-												+ Path.DirectorySeparatorChar + "OpenRA";
+            var defaultSupport = P.HomeDir / "OpenRA";
 
-			SupportDir = args.GetValue("SupportDir", defaultSupport);
+			SupportDir = P.E(args.GetValue("SupportDir", defaultSupport.ToString()));
 			FileSystem.SpecialPackageRoot = args.GetValue("SpecialPackageRoot", "");
 			
 			Utilities = new Utilities(args.GetValue("UtilityPath", "OpenRA.Utility.exe"));
 			
-			Settings = new Settings(SupportDir + "settings.yaml", args);
+			Settings = new Settings(SupportDir / "settings.yaml", args);
 			Settings.Save();
 
-			Log.LogPath = SupportDir + "Logs" + Path.DirectorySeparatorChar;
+            Log.LogPath = SupportDir / "Logs";
 			Log.AddChannel("perf", "perf.log");
 			Log.AddChannel("debug", "debug.log");
 			Log.AddChannel("sync", "syncreport.log");
@@ -338,21 +337,15 @@ namespace OpenRA
 			Widget.OpenWindow("MAINMENU_BG");
 		}
 
-		static string baseSupportDir = null;
-		public static string SupportDir
+		static PathElement baseSupportDir = null;
+		public static PathElement SupportDir
 		{
 			set
 			{
-				var dir = value;
+				var dir = value.ExpandHomeDir();
 
-				// Expand paths relative to the personal directory
-				if (dir.ElementAt(0) == '~')
-					dir = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + dir.Substring(1);
-
-				if (!Directory.Exists(dir))
-					Directory.CreateDirectory(dir);
-
-				baseSupportDir = dir + Path.DirectorySeparatorChar;
+                dir.CreateDir();
+				baseSupportDir = dir;
 			}
 			get { return baseSupportDir; }
 		}

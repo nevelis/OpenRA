@@ -292,7 +292,7 @@ namespace OpenRA.Editor
 						nms.txtNew.Text = "unnamed";
 
 					// TODO: Allow the user to choose map format (directory vs oramap)
-					loadedMapName = Path.Combine(nms.MapFolderPath, nms.txtNew.Text + ".oramap");
+					loadedMapName = (nms.MapFolderPath / (nms.txtNew.Text + ".oramap")).ToString();
 					SaveClicked(sender, e);
 				}
 			}
@@ -385,8 +385,8 @@ namespace OpenRA.Editor
 					/* massive hack: we should be able to call NewMap() with the imported Map object,
 					 * but something's not right internally in it, unless loaded via the real maploader */
 
-					var savePath = Path.Combine(Path.GetTempPath(), "OpenRA.Import");
-					Directory.CreateDirectory(savePath);
+                    var savePath = P.TempDir / "OpenRA.Import";
+                    savePath.CreateDir();
 
 					var errors = new List<string>();
 
@@ -412,11 +412,11 @@ namespace OpenRA.Editor
 						NonCombatant = true
 					});
 				
-					map.Save(savePath);
-					LoadMap(savePath);
+					map.Save(savePath.ToString());
+					LoadMap(savePath.ToString());
 					loadedMapName = null;	/* editor needs to think this hasnt been saved */
 
-					Directory.Delete(savePath, true);
+                    savePath.DeleteDirRecursive();
 					MakeDirty();
 				}
 		}
@@ -436,7 +436,10 @@ namespace OpenRA.Editor
 
 		void ExportMinimap(object sender, EventArgs e)
 		{
-			saveFileDialog.InitialDirectory = Path.Combine(Environment.CurrentDirectory, "maps");
+            // todo: get rid of the designer wiring for saveFileDialog 
+            // and just create it here instead.
+
+            saveFileDialog.InitialDirectory = (P.CurrentDir / "maps").ToString();
 			saveFileDialog.FileName = Path.ChangeExtension(loadedMapName, ".png");
 
 			if (DialogResult.OK == saveFileDialog.ShowDialog())

@@ -19,12 +19,11 @@ namespace OpenRA.Editor
 {
     public partial class MapSelect : Form
     {
-        public string MapFolderPath;
+        public PathElement MapFolderPath;
 
         public MapSelect(string currentMod)
         {
-            MapFolderPath = new string[] { Environment.CurrentDirectory, "mods", currentMod, "maps" }
-				.Aggregate(Path.Combine);
+            MapFolderPath = P.CurrentDir / "mods" / currentMod / "maps";
 			
 			InitializeComponent();
 			MapIconsList.Images.Add(pictureBox1.Image);
@@ -33,13 +32,13 @@ namespace OpenRA.Editor
         void MapSelect_Load(object sender, EventArgs e)
         {
             MapList.Items.Clear();
-            txtPathOut.Text = MapFolderPath;
+            txtPathOut.Text = MapFolderPath.ToString();
 			
             foreach (var map in ModData.FindMapsIn(MapFolderPath))
             {
                 ListViewItem map1 = new ListViewItem();
 				map1.Tag = map;
-				map1.Text = Path.GetFileNameWithoutExtension(map);
+				map1.Text = Path.GetFileNameWithoutExtension(map.ToString());
                 map1.ImageIndex = 0;
                 MapList.Items.Add(map1);
             }
@@ -77,7 +76,7 @@ namespace OpenRA.Editor
 
         void txtPathOut_TextChanged(object sender, EventArgs e)
         {
-            MapFolderPath = txtPathOut.Text;
+            MapFolderPath = P.E(txtPathOut.Text);
         }
 
     }

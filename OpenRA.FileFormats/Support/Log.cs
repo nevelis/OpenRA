@@ -14,35 +14,38 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using OpenRA.FileFormats;
 
 namespace OpenRA
 {
 	public struct ChannelInfo
 	{
-		public string Filename;
+	//	public string Filename;
 		public StreamWriter Writer;
 	}
 
 	public static class Log
 	{
-		static string LogPathPrefix = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + Path.DirectorySeparatorChar;
+        static PathElement LogPathPrefix = P.HomeDir;
 		static Dictionary<string, ChannelInfo> channels = new Dictionary<string,ChannelInfo>();
 
-		public static string LogPath
+		public static PathElement LogPath
 		{
 			get { return LogPathPrefix; }
 			set
 			{
-				LogPathPrefix = value;				
-				Directory.CreateDirectory(LogPathPrefix);
+				LogPathPrefix = value;
+                LogPathPrefix.CreateDir();
 			}
 		}
 
-        static IEnumerable<string> FilenamesForChannel(string channelName, string baseFilename)
+        static IEnumerable<PathElement> FilenamesForChannel(string channelName, string baseFilename)
         {
-            for(var i = 0;; i++ )
-                yield return Path.Combine(LogPathPrefix, 
-                    i > 0 ? "{0}.{1}".F(baseFilename, i) : baseFilename);
+            for (var i = 0; ; i++)
+                if (i == 0)
+                    yield return LogPathPrefix / baseFilename;
+                else
+                    yield return LogPathPrefix / "{0}.{1}".F(baseFilename, i);
         }
 
         public static void AddChannel(string channelName, string baseFilename)
@@ -52,13 +55,13 @@ namespace OpenRA
             foreach (var filename in FilenamesForChannel(channelName, baseFilename))
                 try
                 {
-                    var writer = File.CreateText(filename);
+                    var writer = filename.CreateText();
                     writer.AutoFlush = true;
 
                     channels.Add(channelName,
                         new ChannelInfo()
                         {
-                            Filename = filename,
+                       //     Filename = filename,
                             Writer = writer
                         });
 
