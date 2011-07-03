@@ -90,15 +90,9 @@ namespace OpenRA.Widgets
 				else
 					LoseFocus(mi);
 			}
-			
 			else if (mi.Event == MouseInputEvent.Move && Focused)
-			{
 				Depressed = RenderBounds.Contains(mi.Location.X, mi.Location.Y);
-				
-				// All widgets should receive MouseMove events
-				OnMouseMove(mi);
-			}
-			
+
 			return Depressed;
 		}
 
