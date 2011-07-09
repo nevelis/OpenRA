@@ -307,18 +307,9 @@ namespace OpenRA.Mods.RA.Move
 				SubCell.BottomLeft, SubCell.BottomRight}.First(b => 
 			{
 				var blockingActors = self.World.ActorMap.GetUnitsAt(a,b).Where(c => c != ignoreActor);
-				if (blockingActors.Count() > 0)
-	            {
-			// TODO: remove all this duplication from above!
-	                // Non-sharable unit can enter a cell with shareable units only if it can crush all of them
-	                if (Info.Crushes.Value == 0)
-	                    return false;
-	
-	                if (blockingActors.Any(c => !(c.HasTrait<ICrushable>() &&
-	                                             c.TraitsImplementing<ICrushable>().Any(d => 0 != (d.CrushClasses.Value & Info.Crushes.Value)))))
-	                    return false;
-	            }
-				return true;
+				if (!blockingActors.Any())
+					return true;
+				return Info.CanCrushAll( blockingActors );
 			});
 		}
 		
