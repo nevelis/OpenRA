@@ -74,6 +74,16 @@ namespace OpenRA.Mods.RA.Move
 			{SubCell.BottomRight, new int2(6,6)},
 			{SubCell.FullCell, new int2(0,0)},
 		};
+
+                // Non-sharable unit can enter a cell with shareable units only if it can crush all of them
+		public bool CanCrushAll( IEnumerable<Actor> blockingActors )
+		{
+			if (Crushes.Value == 0)
+				return false;
+
+			return blockingActors.All( a => a.TraitsImplementing<ICrushable>().All(
+				cr => 0 != (cr.CrushClasses.Value & Crushes.Value) ) );
+		}
 		
         public bool CanEnterCell(World world, int2 cell, Actor ignoreActor, bool checkTransientActors)
         {
@@ -85,15 +95,7 @@ namespace OpenRA.Mods.RA.Move
 			
             var blockingActors = world.ActorMap.GetUnitsAt(cell).Where(x => x != ignoreActor).ToList();
             if (checkTransientActors && blockingActors.Count > 0)
-            {
-                // Non-sharable unit can enter a cell with shareable units only if it can crush all of them
-                if (Crushes.Value == 0)
-                    return false;
-
-                if (blockingActors.Any(a => !(a.HasTrait<ICrushable>() &&
-                                             a.TraitsImplementing<ICrushable>().Any(b => 0 != (b.CrushClasses.Value & Crushes.Value)))))
-                    return false;
-            }
+		return CanCrushAll( blockingActors );
 
             return true;
         }
