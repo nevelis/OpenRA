@@ -23,7 +23,7 @@ namespace OpenRA.Mods.RA.Move
     {
         [FieldLoader.LoadUsing("LoadSpeeds")]
         public readonly Dictionary<string, TerrainInfo> TerrainSpeeds;
-        public readonly string[] Crushes;
+        public readonly Bits<_CrushClasses> Crushes;
         public readonly int WaitAverage = 60;
         public readonly int WaitSpread = 20;
         public readonly int InitialFacing = 128;
@@ -87,11 +87,11 @@ namespace OpenRA.Mods.RA.Move
             if (checkTransientActors && blockingActors.Count > 0)
             {
                 // Non-sharable unit can enter a cell with shareable units only if it can crush all of them
-                if (Crushes == null)
+                if (Crushes.Value == 0)
                     return false;
 
                 if (blockingActors.Any(a => !(a.HasTrait<ICrushable>() &&
-                                             a.TraitsImplementing<ICrushable>().Any(b => b.CrushClasses.Intersect(Crushes).Any()))))
+                                             a.TraitsImplementing<ICrushable>().Any(b => 0 != (b.CrushClasses.Value & Crushes.Value)))))
                     return false;
             }
 
@@ -307,12 +307,13 @@ namespace OpenRA.Mods.RA.Move
 				var blockingActors = self.World.ActorMap.GetUnitsAt(a,b).Where(c => c != ignoreActor);
 				if (blockingActors.Count() > 0)
 	            {
+			// TODO: remove all this duplication from above!
 	                // Non-sharable unit can enter a cell with shareable units only if it can crush all of them
-	                if (Info.Crushes == null)
+	                if (Info.Crushes.Value == 0)
 	                    return false;
 	
 	                if (blockingActors.Any(c => !(c.HasTrait<ICrushable>() &&
-	                                             c.TraitsImplementing<ICrushable>().Any(d => d.CrushClasses.Intersect(Info.Crushes).Any()))))
+	                                             c.TraitsImplementing<ICrushable>().Any(d => 0 != (d.CrushClasses.Value & Info.Crushes.Value)))))
 	                    return false;
 	            }
 				return true;
@@ -334,7 +335,7 @@ namespace OpenRA.Mods.RA.Move
             var crushable = self.World.ActorMap.GetUnitsAt(toCell).Where(a => a != self && a.HasTrait<ICrushable>());
             foreach (var a in crushable)
             {
-                var crushActions = a.TraitsImplementing<ICrushable>().Where(b => b.CrushClasses.Intersect(Info.Crushes).Any());
+                var crushActions = a.TraitsImplementing<ICrushable>().Where(b => 0 != (b.CrushClasses.Value & Info.Crushes.Value));
                 foreach (var b in crushActions)
                     b.OnCrush(self);
             }

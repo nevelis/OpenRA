@@ -9,13 +9,14 @@
 #endregion
 
 using System.Collections.Generic;
+using OpenRA.FileFormats;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA.Buildings
 {
 	public class WallInfo : ITraitInfo, Requires<BuildingInfo>
 	{
-		public readonly string[] CrushClasses = { };
+		public readonly Bits<_CrushClasses> CrushClasses;
 		public readonly string CrushSound;
 		public object Create(ActorInitializer init) { return new Wall(init.self, this); }
 	}
@@ -31,7 +32,7 @@ namespace OpenRA.Mods.RA.Buildings
 			this.info = info;
 		}
 		
-		public IEnumerable<string> CrushClasses { get { return info.CrushClasses; } }
+		public Bits<_CrushClasses> CrushClasses { get { return info.CrushClasses; } }
 		public void OnCrush(Actor crusher)
 		{
 			self.Kill(crusher);

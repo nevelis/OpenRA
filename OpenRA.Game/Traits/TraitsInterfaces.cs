@@ -139,10 +139,12 @@ namespace OpenRA.Traits
         int InitialFacing { get; }
     }
 
+	public enum _CrushClasses {}  /* bits tag type */
+
     public interface ICrushable
     {
         void OnCrush(Actor crusher);
-        IEnumerable<string> CrushClasses { get; }
+        Bits<_CrushClasses> CrushClasses { get; }
     }
 
     public struct Renderable

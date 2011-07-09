@@ -17,7 +17,7 @@ namespace OpenRA.Mods.RA
 {
 	class MineInfo : ITraitInfo
 	{
-		public readonly string[] CrushClasses = { };
+		public readonly Bits<_CrushClasses> CrushClasses = new Bits<_CrushClasses>( new string[] {} );
 		[WeaponReference]
 		public readonly string Weapon = "ATMine";
 		public readonly bool AvoidFriendly = true;
@@ -50,7 +50,7 @@ namespace OpenRA.Mods.RA
 		}
 		
 		// TODO: Re-implement friendly-mine avoidance
-		public IEnumerable<string> CrushClasses { get { return info.CrushClasses; } }
+		public Bits<_CrushClasses> CrushClasses { get { return info.CrushClasses; } }
 		
 		public int2 TopLeft { get { return location; } }
 

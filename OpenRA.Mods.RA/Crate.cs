@@ -122,6 +122,7 @@ namespace OpenRA.Mods.RA
 				self.World.ActorMap.Add(self, this);
 		}
 
-		public IEnumerable<string> CrushClasses { get { yield return "crate"; } }
+		static readonly Bits<_CrushClasses> crushClasses = new Bits<_CrushClasses>( new string[] { "crate" } );
+		public Bits<_CrushClasses> CrushClasses { get { return crushClasses; } }
 	}
 }
