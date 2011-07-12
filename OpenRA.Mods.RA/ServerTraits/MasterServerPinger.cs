@@ -14,14 +14,16 @@ using System.Net;
 using OpenRA.Server;
 using S = OpenRA.Server.Server;
 using System.Linq;
+using OpenRA.FileFormats;
 
 namespace OpenRA.Mods.RA.Server
 {
 	public class MasterServerPinger : ServerTrait, ITick, INotifySyncLobbyInfo, IStartGame
 	{
-		const int MasterPingInterval = 60 * 3;	// 3 minutes. server has a 5 minute TTL for games, so give ourselves a bit
-												// of leeway.
+		const int MasterPingInterval = 60 * 3;	// 3 minutes. server TTL is 5min.
+
 		public int TickTimeout { get { return MasterPingInterval * 10000; } }
+
 		public void Tick(S server)
 		{
 			if (Environment.TickCount - lastPing > MasterPingInterval * 1000)
@@ -30,9 +32,7 @@ namespace OpenRA.Mods.RA.Server
 				lock (masterServerMessages)
 					while (masterServerMessages.Count > 0)
 						server.SendChat(null, masterServerMessages.Dequeue());
-
 		}
-
 
 		public void LobbyInfoSynced(S server) { PingMasterServer(server); }
 		public void GameStarted(S server) { PingMasterServer(server); }
@@ -42,6 +42,7 @@ namespace OpenRA.Mods.RA.Server
 
 		volatile bool isBusy;
 		Queue<string> masterServerMessages = new Queue<string>();
+
 		public void PingMasterServer(S server)
 		{
 			if (isBusy || !server.Settings.AdvertiseOnline) return;
@@ -53,20 +54,25 @@ namespace OpenRA.Mods.RA.Server
 				{
 					try
 					{
-						var url = "ping.php?port={0}&name={1}&state={2}&players={3}&mods={4}&map={5}&maxplayers={6}";
+						var url = "ping.php?port={0}&yaml={1}";
 						if (isInitialPing) url += "&new=1";
 
 						using (var wc = new WebClient())
 						{
 							wc.Proxy = null;
-							 wc.DownloadData(
-								server.Settings.MasterServer + url.F(
-								server.Settings.ExternalPort, Uri.EscapeUriString(server.Settings.Name),
-								server.GameStarted ? 2 : 1,	// todo: post-game states, etc.
-								server.lobbyInfo.Clients.Count,
-								string.Join(",", Game.CurrentMods.Select(f => "{0}@{1}".F(f.Key, f.Value.Version)).ToArray()),
-								server.lobbyInfo.GlobalSettings.Map,
-								server.Map.PlayerCount));
+
+							var gameAnnouncement = new GameAnnouncement()
+							{
+								Port = server.Settings.ExternalPort,
+								Name = server.Settings.Name,
+								State = server.GameStarted ? 2 : 1,	// todo: post-game states, etc.
+								Players = server.lobbyInfo.Clients.Count,
+								Mods = string.Join(",", Game.CurrentMods.Select(f => "{0}@{1}".F(f.Key, f.Value.Version)).ToArray()),
+								Map = server.lobbyInfo.GlobalSettings.Map,
+								MaxPlayers = server.Map.PlayerCount
+							};
+
+							wc.DownloadData(server.Settings.MasterServer + url.F(server.Settings.ExternalPort, gameAnnouncement));
 
 							if (isInitialPing)
 							{
@@ -88,5 +94,16 @@ namespace OpenRA.Mods.RA.Server
 
 			a.BeginInvoke(null, null);
 		}
+	}
+	
+	class GameAnnouncement
+	{
+		public int Port;
+		public string Name;
+		public int State;
+		public int Players;
+		public string Mods;
+		public string Map;
+		public int MaxPlayers;
 	}
 }
