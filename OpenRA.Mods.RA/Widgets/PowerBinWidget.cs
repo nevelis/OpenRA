@@ -18,15 +18,10 @@ namespace OpenRA.Mods.RA.Widgets
 {
 	public class PowerBinWidget : Widget
 	{
-		// Power bar
-		float2 powerOrigin = new float2(42, 205); // Relative to radarOrigin
-		Size powerSize = new Size(138, 5);
-
 		float? lastPowerProvidedPos;
 		float? lastPowerDrainedPos;
 		string powerCollection;
 
-		readonly string RadarBin = "INGAME_RADAR_BIN";
 		readonly PowerManager power;
 		readonly World world;
 
@@ -52,17 +47,17 @@ namespace OpenRA.Mods.RA.Widgets
 		{
 			if( world.LocalPlayer == null ) return;
 
-			var radarBin = Widget.RootWidget.GetWidget<RadarBinWidget>(RadarBin);
-
 			powerCollection = "power-" + world.LocalPlayer.Country.Race;
 
 			// Nothing to draw
 			if (power.PowerProvided == 0 && power.PowerDrained == 0)
 				return;
 
+			var rb = RenderBounds;
+
 			// Draw bar horizontally
-			var barStart = powerOrigin + radarBin.RadarOrigin;
-			var barEnd = barStart + new float2(powerSize.Width, 0);
+			var barStart = rb.Left;
+			var barEnd = rb.Right;
 
 			float powerScaleBy = 100;
 			var maxPower = Math.Max(power.PowerProvided, power.PowerDrained);
@@ -70,32 +65,38 @@ namespace OpenRA.Mods.RA.Widgets
 			while (maxPower >= powerScaleBy) powerScaleBy *= 2;
 
 			// Current power supply
-			var powerLevelTemp = barStart.X + (barEnd.X - barStart.X) * (power.PowerProvided / powerScaleBy);
+			var powerLevelTemp = barStart + (barEnd - barStart) * (power.PowerProvided / powerScaleBy);
 			lastPowerProvidedPos = float2.Lerp(lastPowerProvidedPos.GetValueOrDefault(powerLevelTemp), powerLevelTemp, PowerBarLerpFactor);
-			var powerLevel = new float2(lastPowerProvidedPos.Value, barStart.Y);
+			var powerLevel = new float2(lastPowerProvidedPos.Value, rb.Top);
 
 			var color = GetPowerColor(power);
 
+			var barHeight = 4;
+
 			var colorDark = Graphics.Util.Lerp(0.25f, color, Color.Black);
-			for (int i = 0; i < powerSize.Height; i++)
+			var ro = RenderOrigin;
+
+			for (int i = 0; i < barHeight; i++)
 			{
-				color = (i - 1 < powerSize.Height / 2) ? color : colorDark;
+				var actualColor = (i - 1 < barHeight / 2) ? color : colorDark;
 				var leftOffset = new float2(0, i);
 				var rightOffset = new float2(0, i);
+
 				// Indent corners
-				if ((i == 0 || i == powerSize.Height - 1) && powerLevel.X - barStart.X > 1)
+				if ((i == 0 || i == barHeight - 1) && powerLevel.X - barStart > 1)
 				{
 					leftOffset.X += 1;
 					rightOffset.X -= 1;
 				}
-				Game.Renderer.LineRenderer.DrawLine(barStart + leftOffset, powerLevel + rightOffset, color, color);
+
+				Game.Renderer.LineRenderer.DrawLine(ro + leftOffset, powerLevel + rightOffset, actualColor, actualColor);
 			}
 
 			// Power usage indicator
-			var indicator = ChromeProvider.GetImage( powerCollection, "power-indicator");
-			var powerDrainedTemp = barStart.X + (barEnd.X - barStart.X) * (power.PowerDrained / powerScaleBy);
+			var indicator = ChromeProvider.GetImage( powerCollection, "power-indicator" );
+			var powerDrainedTemp = barStart + (barEnd - barStart) * (power.PowerDrained / powerScaleBy);
 			lastPowerDrainedPos = float2.Lerp(lastPowerDrainedPos.GetValueOrDefault(powerDrainedTemp), powerDrainedTemp, PowerBarLerpFactor);
-			var powerDrainLevel = new float2(lastPowerDrainedPos.Value - indicator.size.X / 2, barStart.Y - 1);
+			var powerDrainLevel = new float2(lastPowerDrainedPos.Value - indicator.size.X / 2, rb.Top - 1);
 
 			Game.Renderer.RgbaSpriteRenderer.DrawSprite(indicator, powerDrainLevel);
 		}
