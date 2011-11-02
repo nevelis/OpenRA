@@ -1,3 +1,23 @@
+Crawler:
+	Inherits: ^Infantry
+	Valued:
+		Cost: 100
+	Tooltip:
+		Icon: zombieicon
+		Name: Crawler
+		Description: A Crawler. Slow and slighty immobile.
+	Selectable:
+		Bounds: 12,17,0,-9
+	Health:
+		HP: 200
+	Mobile:
+		Speed: 2
+	AttackWander:
+	AutoTarget:
+		ScanRadius: 5
+	AttackFrontal:
+		PrimaryWeapon: Claw
+		IdleAnimations: idle1
 Zombie:
 	Inherits: ^Infantry
 	Valued:

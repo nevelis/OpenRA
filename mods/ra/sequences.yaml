@@ -548,6 +548,45 @@ ss:
 		Start: 0
 		Facings: 16
 
+crawler:
+	stand:
+		Start: 0
+		Facings: 8
+	run:
+		Start: 8
+		Length: 4
+		Facings: 8
+	shoot:
+		Start: 42
+		Length: 4
+		Facings: 8
+	idle1:
+		Start: 0
+		Length: 8
+		Tick: 120
+	die1:
+		Start: 72
+		Length: 10
+	die2:
+		Start: 72
+		Length: 10
+	die3:
+		Start: 72
+		Length: 10
+	die4:
+		Start: 72
+		Length: 10
+	die5:
+		Start: 72
+		Length: 10
+	die6: electro
+		Start: 0
+		Length: *
+	die-crushed: corpse1
+		Start: 0
+		Length: 6
+		Tick: 1600
+
 zombie:
 	stand:
 		Start: 0
