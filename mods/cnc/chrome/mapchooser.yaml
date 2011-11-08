@@ -78,3 +78,9 @@ Container@MAPCHOOSER_PANEL:
 					Width:140
 					Height:35
 					Text:Ok
+				Label@LOADING_MAPS:
+					Id:LOADING_MAPS
+					X:PARENT_LEFT + 240
+					Y:PARENT_TOP + 200
+					Text:Loading Maps
+					Font:Bold
