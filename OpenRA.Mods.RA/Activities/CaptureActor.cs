@@ -1,6 +1,6 @@
 #region Copyright & License Information
 /*
- * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2012 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation. For more information,
@@ -10,6 +10,7 @@
 
 using System.Linq;
 using OpenRA.Traits;
+using OpenRA.Mods.RA.Move;
 
 namespace OpenRA.Mods.RA.Activities
 {
@@ -25,26 +26,23 @@ namespace OpenRA.Mods.RA.Activities
 			if (target == null || !target.IsInWorld || target.IsDead()) return NextActivity;
 			if (target.Owner == self.Owner) return NextActivity;
 
-			if( !target.OccupiesSpace.OccupiedCells().Any( x => x.First == self.Location ) )
+			var capturable = target.TraitOrDefault<Capturable>();
+			if (capturable != null && capturable.CaptureInProgress && capturable.Captor.Owner.Stances[self.Owner] == Stance.Ally)
 				return NextActivity;
 
-			// todo: clean this up
-			self.World.AddFrameEndTask(w =>
-			{
-				// momentarily remove from world so the ownership queries don't get confused
-				var oldOwner = target.Owner;
-				w.Remove(target);
-				target.Owner = self.Owner;
-				w.Add(target);
+			var sellable = target.TraitOrDefault<Sellable>();
+			if (sellable != null && sellable.Selling)
+				return NextActivity;
 
-				foreach (var t in target.TraitsImplementing<INotifyCapture>())
-					t.OnCapture(target, self, oldOwner, self.Owner);
+			var captures = self.TraitOrDefault<Captures>();
+			var capturesInfo = self.Info.Traits.Get<CapturesInfo>();
+			if (captures != null && Combat.IsInRange(self.CenterLocation, capturesInfo.Range, target))
+				target.Trait<Capturable>().BeginCapture(target, self);
+			else
+				return Util.SequenceActivities(self.Trait<Mobile>().MoveWithinRange(Target.FromActor(target), capturesInfo.Range), this);
+			if (capturesInfo != null && capturesInfo.wastedAfterwards)
+				self.World.AddFrameEndTask(w => self.Destroy());
 
-				foreach (var t in self.World.ActorsWithTrait<INotifyOtherCaptured>())
-					t.Trait.OnActorCaptured(t.Actor, target, self, oldOwner, self.Owner);
-
-				self.Destroy();
-			});
 			return this;
 		}
 	}

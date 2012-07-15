@@ -174,8 +174,9 @@ V2RL:
 		HuskActor: 4TNK.Husk
 	SelfHealing:
 		Step: 1
-		Ticks: 5
+		Ticks: 1
 		HealIfBelow: 50%
+		DamageCooldown: 200
 	Selectable:
 		Bounds: 44,38,0,-4
 
@@ -204,6 +205,8 @@ ARTY:
 		PrimaryWeapon: 155mm
 	RenderUnit:
 	Explodes:
+		Weapon: UnitExplode
+		Chance: 75  
 	AutoTarget:
 
 HARV:
@@ -225,6 +228,10 @@ HARV:
 		Capacity: 20
 		Resources: Ore,Gems
 		UnloadTicksPerBale: 1
+		# How far away from our linked proc (refinery) to find resources (in cells):
+		SearchFromProcRadius: 24
+		# How far away from last harvest order location to find more resources (in cells):
+		SearchFromOrderRadius: 12
 	Health:
 		HP: 600
 	Armor:
@@ -404,7 +411,7 @@ MNLY.AT:
 		Mine: MINV
 	MineImmune:
 	LimitedAmmo:
-		Ammo: 5
+		Ammo: 3
 	AttackMove:
 		JustMove: true
 
@@ -510,12 +517,12 @@ TTNK:
 		Prerequisites: stek,tsla
 		Owner: soviet
 	Valued:
-		Cost: 1800
+		Cost: 1500
 	Tooltip:
 		Name: Tesla Tank
 		Description: Tank with mounted tesla coil.\n Strong vs Infantry.\n Weak vs Tanks
 	Health:
-		HP: 110
+		HP: 150
 	Armor:
 		Type: Light
 	Mobile:

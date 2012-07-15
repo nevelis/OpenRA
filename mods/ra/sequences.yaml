@@ -849,6 +849,9 @@ explosion:
 	large_explosion: frag1
 		Start: 0
 		Length: *
+	small_napalm: napalm1
+		Start: 0
+		Length: *
 
 lst:
 	idle:
@@ -865,10 +868,10 @@ pips:
 		Length: 10
 	medic:
 		Start: 20
-	ready:
-		Start: 3
-	hold:
-		Start: 4
+#	ready:
+#		Start: 3
+#	hold:
+#		Start: 4
 	tag-fake:
 		Start: 18
 	tag-primary:
@@ -1419,7 +1422,7 @@ e4:
 		Facings: 8
 
 fb1:
-	idle:
+	idle: 
 		Start: 0
 		Length: *
 
@@ -1617,6 +1620,15 @@ fb2:
 		Start: 0
 		Length: *
 
+fb3:
+	idle:
+		Start: 0
+		Facings: 32
+fb4:
+	idle:
+		Start: 0
+		Length: *
+
 u2:
 	idle:
 		Start: 0
@@ -1629,6 +1641,8 @@ crate:
 		Start: 0
 		Length: *
 		Tick: 500
+	land: sh-crate
+		Start: 0
 
 crate-effects:
 	speed: speed
@@ -1863,6 +1877,45 @@ c2:
 		Length: 6
 		Facings: 8
 
+einstein:
+	stand:
+		Start: 0
+		Facings: 8
+	panic-run:
+		Start: 8
+		Length: 6
+		Facings: 8
+	panic-stand:
+		Start: 8
+		Length: 6
+		Facings: 8
+	run:
+		Start: 56
+		Length: 6
+		Facings: 8
+	die1:
+		Start: 115
+		Length: 8
+	die2:
+		Start: 123
+		Length: 8
+	die3:
+		Start: 135
+		Length: 12
+	die4:
+		Start: 147
+		Length: 17
+	die5:
+		Start: 123
+		Length: 8
+	die6: electro
+		Start: 0
+		Length: *
+	die-crushed: corpse1
+		Start: 0
+		Length: 6
+		Tick: 1600		
+
 parabomb:
 	open:
 		Start: 0
@@ -2068,3 +2121,4 @@ overlay:
 		Start: 0
 	target-invalid:
 		Start: 1
+

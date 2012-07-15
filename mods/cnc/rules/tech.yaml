@@ -21,15 +21,15 @@ V19.Husk:
 
 # Hospital
 HOSP:
-	Inherits: ^TechBuilding
+	Inherits: ^CivBuilding
 	Building:
 		Footprint: xx xx
 		Dimensions: 2,2
 	Tooltip:
 		Name: Hospital
-	-Capturable:
 	LeavesHusk: 
 		HuskActor: HOSP.Husk
+	RepairsUnits:
 
 HOSP.Husk:
 	Inherits: ^CivBuildingHusk

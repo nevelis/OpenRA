@@ -1,6 +1,4 @@
 #!/bin/bash
-SERVER=openra.res0l.net
-PATHBASE="openra.res0l.net/assets/downloads"
 
 upload () {
     PLATFORM=$1

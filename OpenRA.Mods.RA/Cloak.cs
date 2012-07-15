@@ -22,6 +22,7 @@ namespace OpenRA.Mods.RA
 		public int CloakDelay = 30; // Ticks
 		public string CloakSound = "subshow1.aud";
 		public string UncloakSound = "subshow1.aud";
+		public readonly string Palette = "cloak";
 
 		public object Create(ActorInitializer init) { return new Cloak(init.self, this); }
 	}
@@ -70,7 +71,7 @@ namespace OpenRA.Mods.RA
 				return rs;
 
 			if (Cloaked && IsVisible(self))
-				return rs.Select(a => a.WithPalette("shadow"));
+				return rs.Select(a => a.WithPalette(info.Palette));
 			else
 				return Nothing;
 		}
@@ -80,6 +81,8 @@ namespace OpenRA.Mods.RA
 			if (remainingTime > 0 && canCloak)
 				if (--remainingTime <= 0)
 					Sound.Play(info.CloakSound, self.CenterLocation);
+			if (self.IsDisabled())
+				Uncloak();
 		}
 
 		public bool IsVisible(Actor self)

@@ -112,7 +112,7 @@ E4:
 	Buildable:
 		Queue: Infantry
 		BuildPaletteOrder: 60
-		Prerequisites: stek
+		Prerequisites: ftur
 		Owner: soviet
 	Valued:
 		Cost: 300
@@ -195,6 +195,8 @@ SPY:
 	-RenderInfantry:
 	RenderSpy:
 		IdleAnimations: idle1,idle2
+	AttackFrontal:
+		PrimaryWeapon: SilencedPPK
 
 E7:
 	Inherits: ^Infantry
@@ -202,7 +204,7 @@ E7:
 		Queue: Infantry
 		BuildPaletteOrder: 110
 		Prerequisites: techcenter
-		Owner: allies,soviet
+		Owner: allies
 	Valued:
 		Cost: 1200
 	Tooltip:
@@ -300,7 +302,27 @@ C2:
 		Range: 2
 	AttackFrontal:
 		PrimaryWeapon: Pistol
-	-ProximityCaptor:
+	ProximityCaptor:
+		Types:CivilianInfantry
+
+EINSTEIN:
+	Inherits: ^Infantry
+	Selectable:
+		Voice: EinsteinVoice
+		Bounds: 12,17,0,-9
+	Valued:
+		Cost: 10
+	Tooltip:
+		Name: Prof. Einstein
+	Health:
+		HP: 25
+	Mobile:
+		Speed: 5
+	RevealsShroud:
+		Range: 2
+	-AutoTarget:
+	AttackMove:
+		JustMove: true
 	ProximityCaptor:
 		Types:CivilianInfantry
 

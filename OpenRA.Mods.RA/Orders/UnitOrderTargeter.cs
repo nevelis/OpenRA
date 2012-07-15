@@ -30,6 +30,7 @@ namespace OpenRA.Mods.RA.Orders
 
 		public string OrderID { get; private set; }
 		public int OrderPriority { get; private set; }
+		public bool? ForceAttack = null;
 
 		public virtual bool CanTargetActor(Actor self, Actor target, bool forceAttack, bool forceQueued, ref string cursor)
 		{
@@ -39,6 +40,8 @@ namespace OpenRA.Mods.RA.Orders
 			cursor = this.cursor;
 			IsQueued = forceQueued;
 
+			if (ForceAttack != null && forceAttack != ForceAttack) return false;
+
 			var playerRelationship = self.Owner.Stances[ target.Owner ];
 
 			if( !forceAttack && playerRelationship == Stance.Ally && !targetAllyUnits ) return false;
@@ -47,7 +50,7 @@ namespace OpenRA.Mods.RA.Orders
 			return true;
 		}
 
-		public virtual bool CanTargetLocation(Actor self, int2 location, List<Actor> actorsAtLocation, bool forceAttack, bool forceQueued, ref string cursor)
+		public virtual bool CanTargetLocation(Actor self, CPos location, List<Actor> actorsAtLocation, bool forceAttack, bool forceQueued, ref string cursor)
 		{
 			return false;
 		}

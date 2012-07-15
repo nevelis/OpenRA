@@ -53,7 +53,7 @@ namespace OpenRA.Mods.RA
 
 		public override Activity GetAttackActivity(Actor self, Target newTarget, bool allowMove)
 		{
-			return new AttackActivity( newTarget );
+			return new AttackActivity( newTarget, allowMove );
 		}
 
 		public override void ResolveOrder(Actor self, Order order)
@@ -69,27 +69,34 @@ namespace OpenRA.Mods.RA
 		class AttackActivity : Activity
 		{
 			readonly Target target;
-			public AttackActivity( Target newTarget ) { this.target = newTarget; }
+			readonly bool allowMove;
+
+			public AttackActivity( Target newTarget, bool allowMove )
+			{
+				this.target = newTarget;
+				this.allowMove = allowMove;
+			}
 
 			public override Activity Tick( Actor self )
 			{
 				if( IsCanceled || !target.IsValid ) return NextActivity;
 
-				if (self.TraitsImplementing<IDisable>().Any(d => d.Disabled))
-					return this;
+				if (self.IsDisabled()) return this;
 
 				var attack = self.Trait<AttackTurreted>();
 				const int RangeTolerance = 1;	/* how far inside our maximum range we should try to sit */
 				var weapon = attack.ChooseWeaponForTarget(target);
+
 				if (weapon != null)
 				{
 					attack.target = target;
 
-					if (self.HasTrait<Mobile>() && !self.Info.Traits.Get<MobileInfo>().OnRails)
+					if (allowMove && self.HasTrait<Mobile>() && !self.Info.Traits.Get<MobileInfo>().OnRails)
 						return Util.SequenceActivities(
 							new Follow( target, Math.Max( 0, (int)weapon.Info.Range - RangeTolerance ) ),
 							this );
 				}
+
 				return NextActivity;
 			}
 		}

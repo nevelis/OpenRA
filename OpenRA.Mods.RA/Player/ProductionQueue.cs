@@ -44,18 +44,12 @@ namespace OpenRA.Mods.RA
 		// A list of things we are currently building
 		public List<ProductionItem> Queue = new List<ProductionItem>();
 
-		[Sync]
-		public int QueueLength { get { return Queue.Count; } }
-		[Sync]
-		public int CurrentRemainingCost { get { return QueueLength == 0 ? 0 : Queue[0].RemainingCost; } }
-		[Sync]
-		public int CurrentRemainingTime { get { return QueueLength == 0 ? 0 : Queue[0].RemainingTime; } }
-		[Sync]
-		public int CurrentSlowdown { get { return QueueLength == 0 ? 0 : Queue[0].slowdown; } }
-		[Sync]
-		public bool CurrentPaused { get { return QueueLength == 0 ? false : Queue[0].Paused; } }
-		[Sync]
-		public bool CurrentDone { get { return QueueLength == 0 ? false : Queue[0].Done; } }
+		[Sync] public int QueueLength { get { return Queue.Count; } }
+		[Sync] public int CurrentRemainingCost { get { return QueueLength == 0 ? 0 : Queue[0].RemainingCost; } }
+		[Sync] public int CurrentRemainingTime { get { return QueueLength == 0 ? 0 : Queue[0].RemainingTime; } }
+		[Sync] public int CurrentSlowdown { get { return QueueLength == 0 ? 0 : Queue[0].slowdown; } }
+		[Sync] public bool CurrentPaused { get { return QueueLength == 0 ? false : Queue[0].Paused; } }
+		[Sync] public bool CurrentDone { get { return QueueLength == 0 ? false : Queue[0].Done; } }
 
 		// A list of things we could possibly build, even if our race doesn't normally get it
 		public Dictionary<ActorInfo, ProductionState> Produceable;
@@ -260,6 +254,10 @@ namespace OpenRA.Mods.RA
 				* Info.BuildSpeed
 				* (25 * 60) /* frames per min */				/* todo: build acceleration, if we do that */
 				 / 1000;
+
+			if (unit.Traits.Contains<CustomBuildTimeValueInfo>())
+				time = unit.Traits.Get<CustomBuildTimeValueInfo>().Value * (1 / Info.BuildSpeed);
+
 			return (int) time;
 		}
 
@@ -294,11 +292,6 @@ namespace OpenRA.Mods.RA
 			Queue.Add(item);
 		}
 
-		protected static bool IsDisabledBuilding(Actor a)
-		{
-			return a.TraitsImplementing<IDisable>().Any(d => d.Disabled);
-		}
-
 		// Builds a unit from the actor that holds this queue (1 queue per building)
 		// Returns false if the unit can't be built
 		protected virtual bool BuildUnit( string name )
@@ -311,7 +304,7 @@ namespace OpenRA.Mods.RA
 			}
 
 			var sp = self.TraitsImplementing<Production>().FirstOrDefault(p => p.Info.Produces.Contains(Info.Type));
-			if (sp != null && !IsDisabledBuilding(self) && sp.Produce(self, Rules.Info[ name ]))
+			if (sp != null && !self.IsDisabled() && sp.Produce(self, Rules.Info[ name ]))
 			{
 				FinishProduction();
 				return true;

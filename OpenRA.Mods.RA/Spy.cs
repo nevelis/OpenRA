@@ -73,7 +73,7 @@ namespace OpenRA.Mods.RA
 
 	class SpyInfo : TraitInfo<Spy> { }
 
-	class Spy : IIssueOrder, IResolveOrder, IOrderVoice, IRadarColorModifier
+	class Spy : IIssueOrder, IResolveOrder, IOrderVoice, IRadarColorModifier, INotifyAttack
 	{
 		public Player disguisedAsPlayer;
 		public string disguisedAsSprite, disguisedAsName;
@@ -84,8 +84,8 @@ namespace OpenRA.Mods.RA
 		{
 			get
 			{
-				yield return new UnitTraitOrderTargeter<IAcceptSpy>( "SpyInfiltrate", 5, "enter", true, false );
-				yield return new UnitTraitOrderTargeter<RenderInfantry>( "Disguise", 5, "ability", true, true );
+				yield return new UnitTraitOrderTargeter<IAcceptSpy>( "SpyInfiltrate", 7, "enter", true, false ) { ForceAttack=false };
+				yield return new UnitTraitOrderTargeter<RenderInfantry>( "Disguise", 7, "ability", true, true ) { ForceAttack=false };
 			}
 		}
 
@@ -113,24 +113,16 @@ namespace OpenRA.Mods.RA
 				var target = order.TargetActor == self ? null : order.TargetActor;
 
 				if (target != null && target.IsInWorld)
-				{
-					var tooltip = target.TraitsImplementing<IToolTip>().FirstOrDefault();
-					disguisedAsName = tooltip.Name();
-					disguisedAsPlayer = tooltip.Owner();
-					disguisedAsSprite = target.Trait<RenderSimple>().GetImage(target);
-				}
+					DisguiseAs(target);
 				else
-				{
-					disguisedAsName = null;
-					disguisedAsPlayer = null;
-					disguisedAsSprite = null;
-				}
+					DropDisguise();
 			}
 		}
 
 		public string VoicePhraseForOrder(Actor self, Order order)
 		{
-			return order.OrderString == "Disguise" ? "Attack" : null;
+			return (order.OrderString == "Disguise"
+					|| order.OrderString == "SpyInfiltrate") ? "Attack" : null;
 		}
 
 		public Color RadarColorOverride(Actor self)
@@ -141,6 +133,24 @@ namespace OpenRA.Mods.RA
 
 			return disguisedAsPlayer.ColorRamp.GetColor(0);
 		}
+
+		void DisguiseAs(Actor target)
+		{
+			var tooltip = target.TraitsImplementing<IToolTip>().FirstOrDefault();
+			disguisedAsName = tooltip.Name();
+			disguisedAsPlayer = tooltip.Owner();
+			disguisedAsSprite = target.Trait<RenderSimple>().GetImage(target);
+		}
+
+		void DropDisguise()
+		{
+			disguisedAsName = null;
+			disguisedAsPlayer = null;
+			disguisedAsSprite = null;
+		}
+
+		/* lose our disguise if we attack anything */
+		public void Attacking(Actor self, Target target) { DropDisguise(); }
 	}
 
 	class IgnoresDisguiseInfo : TraitInfo<IgnoresDisguise> {}
