@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Text;
+using OpenRA.Traits;
 
 namespace OpenRA.Autobot
 {
@@ -9,6 +10,20 @@ namespace OpenRA.Autobot
 	{
 		#region Constants
 		public const string LUA_DLL = "/Users/aaron/liblua.dylib";
+
+		enum LuaType {
+			LUA_TNONE = -1,
+			LUA_TNIL = 0,
+			LUA_TBOOLEAN,
+			LUA_TLIGHTUSERDATA,
+			LUA_TNUMBER,
+			LUA_TSTRING,
+			LUA_TTABLE,
+			LUA_TFUNCTION,
+			LUA_TUSERDATA,
+			LUA_TTHREAD,
+			LUA_TNUMTAGS
+		}
 		#endregion
 
 		#region Lua Interface
@@ -22,13 +37,22 @@ namespace OpenRA.Autobot
 		static extern void lua_close(IntPtr L);
 
 		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern int lua_type(IntPtr l, int index);
+
+		static bool lua_istable(IntPtr l, int index)
+		{
+			return (LuaType)lua_type(l, index) == LuaType.LUA_TTABLE;
+		}
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
 		static extern int luaL_loadstring(IntPtr l, string s);
 
 		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
 		static extern int lua_pcallk(IntPtr l, int num_args, int num_results, int msgh, int ctx, IntPtr k);
+
 		static int lua_pcall (IntPtr l, int num_args, int num_results, int msgh)
 		{
-			return lua_pcallk(l,num_args, num_results, msgh, 0, IntPtr.Zero);
+			return lua_pcallk(l, num_args, num_results, msgh, 0, IntPtr.Zero);
 		}
 
 		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl, EntryPoint="lua_tolstring")]
@@ -93,6 +117,34 @@ namespace OpenRA.Autobot
 		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
 		static extern IntPtr lua_pushstring(IntPtr l, string s);
 
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern void lua_pushnil(IntPtr l);
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern void lua_createtable(IntPtr l, int narr, int nrec);
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern void lua_getfield(IntPtr l, int index, string key);
+
+		static void lua_newtable (IntPtr l)
+		{
+			lua_createtable(l, 0, 0);
+		}
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern void lua_settop(IntPtr l, int i);
+
+		static void lua_pop(IntPtr l, int num)
+		{
+			lua_settop(l, -num - 1);
+		}
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern IntPtr lua_atpanic(IntPtr l, lua_CFunction func);
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern void lua_setfield(IntPtr l, int index, string key);
+
 		#endregion
 
 		private IntPtr lua = IntPtr.Zero;
@@ -120,6 +172,10 @@ namespace OpenRA.Autobot
 				throw new Exception("Failed to create lua state");
 			}
 
+			lua_atpanic(lua, delegate(IntPtr l) {
+				throw new Exception("Fatal error in lua library");
+			});
+
 			RegisterAPI();
 		}
 
@@ -144,7 +200,7 @@ namespace OpenRA.Autobot
 			}
 		}
 
-		public void CallFunc (string function, params object[] args)
+		public void CallFunc(string function, params object[] args)
 		{
 			// Push function name
 			lua_getglobal (lua, function);
@@ -155,10 +211,13 @@ namespace OpenRA.Autobot
 					lua_pushstring (lua, arg as String);
 				} else if (arg is Int32) {
 					lua_pushinteger (lua, (int)arg);
+				} else if (arg is Actor) {
+					PushActor(lua, arg as Actor);
 				} else {
 					throw new NotImplementedException ("Unsupported argument type: " + arg.GetType ().ToString ());
 				}
 			}
+
 			if (lua_pcall (lua, args.Length, 0, 0) != 0) {
 				ThrowError();
 			}
@@ -171,6 +230,9 @@ namespace OpenRA.Autobot
 
 		private void RegisterAPI ()
 		{
+			var world = Game.orderManager.world;
+
+			#region void log(...)
 			lua_register(lua, "log", delegate(IntPtr l) {
 				int args = lua_gettop(l);
 
@@ -188,6 +250,74 @@ namespace OpenRA.Autobot
 				Bot.Log(sb.ToString());
 				return 0;
 			});
+			#endregion
+
+			#region array FindUnitByName(name)
+			lua_register(lua, "FindUnitByName", delegate(IntPtr l) {
+				int args = lua_gettop(l);
+
+				if(args != 1) {
+					Bot.Log("FindUnitByName: incorrect number of parameters");
+					return 0;
+				}
+
+				string name = lua_tostring(l, 1);
+
+				// Find the first unit of the given type & return it
+				foreach(var actor in world.ActorsWithTrait<Selectable>()) {
+					Actor a = actor.Actor;
+
+					if(a.Owner != world.LocalPlayer) {
+						// Not our unit
+						continue;
+					}
+
+					if(a.Info.Name.Equals( name, StringComparison.OrdinalIgnoreCase)) {
+						PushActor(l, a);
+						return 1;
+					}
+				}
+
+				lua_pushnil(l);
+				return 1;
+			});
+			#endregion
+
+			#region void DeployUnit(unit)
+			lua_register(lua, "DeployUnit", delegate(IntPtr l) {
+				int args = lua_gettop(l);
+				if(args != 1 ) {
+					Bot.Log("invalid parameter count");
+					return 0;
+				}
+
+				if(!lua_istable(l, 1)) {
+					Bot.Log("invalid argument type");
+					return 0;
+				}
+
+				lua_getfield(l, 1, "id");
+				uint i = (uint)lua_tointeger(l, -1);
+				lua_pop(l, 1);
+
+				Bot.Log("Deploying unit " + i);
+				world.IssueOrder(new Order("DeployTransform", world.GetActorById(i), false));
+
+				return 0;
+			});
+			#endregion
+		}
+
+		/// <summary>
+		/// Pushes an actor into a table on the stack.
+		/// </summary>
+		private static void PushActor (IntPtr lua, Actor a)
+		{
+			lua_newtable(lua);
+			lua_pushstring(lua, a.Info.Name);
+			lua_setfield(lua, -2, "name");
+			lua_pushinteger(lua, (int)a.ActorID);
+			lua_setfield(lua, -2, "id");
 		}
 
 		#region IDisposable implementation

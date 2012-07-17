@@ -20,6 +20,7 @@ using OpenRA.Graphics;
 using OpenRA.Network;
 using OpenRA.Support;
 using OpenRA.Widgets;
+using OpenRA.Autobot;
 
 using XRandom = OpenRA.Thirdparty.Random;
 

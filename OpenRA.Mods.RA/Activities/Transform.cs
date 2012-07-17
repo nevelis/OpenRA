@@ -11,6 +11,7 @@
 using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.Traits;
+using OpenRA.Autobot;
 
 namespace OpenRA.Mods.RA.Activities
 {
@@ -67,6 +68,8 @@ namespace OpenRA.Mods.RA.Activities
 
 				if (selected)
 					w.Selection.Add(w, a);
+
+				Bot.UnitDeployed(a);
 			});
 
 			return this;

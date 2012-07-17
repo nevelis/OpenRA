@@ -140,6 +140,11 @@ namespace OpenRA
 			ActorRemoved(a);
 		}
 
+		public Actor GetActorById (uint id)
+		{
+			return actors.Where( x => x.ActorID == id ).FirstOrDefault();
+		}
+
 		public void Add(IEffect b) { effects.Add(b); }
 		public void Remove(IEffect b) { effects.Remove(b); }
 
