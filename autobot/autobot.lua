@@ -48,6 +48,7 @@ function pickNextBuilding()
 	local p = GetPowerUsage()
 	if p <= 0 then
 		log('Need power - building power plant')
+		state['building'] = 'powr'
 	end
 
 	if state['building'] ~= nil then
