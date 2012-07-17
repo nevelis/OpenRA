@@ -9,6 +9,7 @@
 #endregion
 
 using System.Drawing;
+using OpenRA.Autobot;
 using OpenRA.Network;
 
 namespace OpenRA.Widgets
@@ -66,7 +67,13 @@ namespace OpenRA.Widgets
 
 					composing = false;
 					if (content != "")
-						orderManager.IssueOrder(Order.Chat(teamChat, content));
+					{
+						string message = content.Trim();
+						if (message[0] == '/')
+							Bot.ParseCommand(message);
+						else
+							orderManager.IssueOrder(Order.Chat(teamChat, content));
+					}
 					content = "";
 
 					LoseFocus();

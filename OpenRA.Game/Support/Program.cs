@@ -24,6 +24,7 @@ namespace OpenRA
 		{
 			// brutal hack
 			Application.CurrentCulture = CultureInfo.InvariantCulture;
+			Environment.CurrentDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "..");
 
 			if (Debugger.IsAttached || args.Contains("--just-die"))
 			{
