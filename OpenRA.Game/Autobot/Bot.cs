@@ -50,11 +50,13 @@ namespace OpenRA.Autobot
 		static Lua lua = null;
 		private static void RunAutobot ()
 		{
-			lua = new Lua();
-			lua.RunScript("autobot/autobot.lua");
-			lua.CallFunc("OnInit");
+			Game.RunAfterTick( delegate() {
+				lua = new Lua();
+				lua.RunScript("autobot/autobot.lua");
+				lua.CallFunc("OnInit");
 
-			Game.RunAfterDelay(THINK_TIME, Bot.Tick);
+				Game.RunAfterDelay(THINK_TIME, Bot.Tick);
+			});
 		}
 
 
