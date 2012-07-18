@@ -346,6 +346,8 @@ namespace OpenRA.Mods.RA.Widgets
 			var unit = Rules.Info[item];
 			var producing = CurrentQueue.AllQueued().FirstOrDefault( a => a.Item == item );
 
+			Autobot.Bot.Log("Build: " + item);
+
 			if (isLmb)
 			{
 				if (producing != null && producing == CurrentQueue.CurrentItem())

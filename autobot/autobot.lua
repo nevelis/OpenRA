@@ -14,7 +14,8 @@ army = {}
 
 -- Called when '/run' is typed in the chat box
 function OnInit()
-	log('Autobot Script Starting YEOWH')
+	log('Autobot Script Starting...')
+	log('Team: ', Team())
 
 	-- Set team-specific buildings & army sizes
 	if Team() == 'allies' then
@@ -59,8 +60,6 @@ function OnUnitDeployed(unit)
 	if unit['name'] == 'fact' then
 		state['bases'] = state['bases'] + 1
 		log('MCV deployed, base operational!')
-
-		pickNextBuilding()
 	end
 end
 
@@ -123,7 +122,7 @@ function pickNextBuilding()
 	-- Check our power level
 	local p = GetPowerExcess()
 	if p <= 0 then
-		log('Need power - building power plant')
+		log('Need power (have ', p, ') - building power plant')
 
 		-- Try building an advanced power plant first
 		if CanBuild('apwr') then

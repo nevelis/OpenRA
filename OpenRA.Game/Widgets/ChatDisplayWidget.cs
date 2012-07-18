@@ -19,7 +19,7 @@ namespace OpenRA.Widgets
 		public readonly int RemoveTime = 0;
 		public readonly bool UseContrast = false;
 
-		const int logLength = 9;
+		const int logLength = 30;
 		public string Notification = "";
 		public bool DrawBackground = true;
 		int ticksUntilRemove = 0;

@@ -3,20 +3,20 @@ using System.Drawing;
 using System.IO;
 using System.Diagnostics;
 using System.Collections;
+using System.Text;
+using System.Linq;
 
 namespace OpenRA.Autobot
 {
-	public static class Bot
+	public static partial class Bot
 	{
 		static Color CONSOLE_COLOR = Color.Firebrick;
-		static int THINK_TIME = 3000;
+		static int THINK_TIME = 1000;
 
-		private static Stopwatch sw;
+		static Lua lua = null;
 
 		static Bot ()
 		{
-			sw = new Stopwatch();
-			sw.Start();
 		}
 
 		public static void Log (string s)
@@ -36,35 +36,56 @@ namespace OpenRA.Autobot
 			} else {
 				Log("Unknown command: " + cmd);
 			}
+ 			}
+
+		private static void Run (Action a)
+		{
+			try {
+				if(lua != null) {
+					a();
+				}
+			} catch (Exception ex) {
+				Log("Exception caught:" + ex.Message);
+				foreach(var line in ex.StackTrace.Split(new char[] {'\n'}).Take(4)) {
+					Log(line);
+				}
+				lua.Dispose();
+				lua = null;
+			}
 		}
 
 		public static void Tick ()
 		{
-			if(lua != null) {
-				Game.RunAfterTick( () => { lua.CallFunc("OnThink"); });
-			}
+			Game.RunAfterTick (() => { 
+				Run(delegate() {
+					lua.CallFunc ("OnThink");
 
-			Game.RunAfterDelay(THINK_TIME, Bot.Tick);
+					if(lua != null) {
+						Game.RunAfterDelay (THINK_TIME, Bot.Tick);
+					}
+				});
+			});
 		}
 
-		static Lua lua = null;
 		private static void RunAutobot ()
 		{
 			Game.RunAfterTick( delegate() {
 				lua = new Lua();
-				lua.RunScript("autobot/autobot.lua");
-				lua.CallFunc("OnInit");
 
-				Game.RunAfterDelay(THINK_TIME, Bot.Tick);
+				Run(delegate() {
+					lua.RunScript("autobot/autobot.lua");
+					lua.CallFunc("OnInit");
+					Game.RunAfterDelay(THINK_TIME, Bot.Tick);
+				});
 			});
 		}
 
 
 		public static void UnitDeployed (Actor a)
 		{
-			if (lua != null) {
+			Run(delegate() {
 				Game.RunAfterTick( () => { lua.CallFunc("OnUnitDeployed", a); });
-			}
+			});
 		}
 	}
 }

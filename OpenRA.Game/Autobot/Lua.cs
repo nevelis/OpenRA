@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Text;
 using OpenRA.Traits;
+using System.Linq;
+using System.Reflection;
 
 namespace OpenRA.Autobot
 {
@@ -176,7 +178,10 @@ namespace OpenRA.Autobot
 				throw new Exception("Fatal error in lua library");
 			});
 
-			RegisterAPI();
+			LoadFunctionsFromAssembly(Assembly.GetExecutingAssembly());
+
+			// Hack - do this when mods load
+			LoadFunctionsFromAssembly(Assembly.Load("OpenRA.Mods.RA"));
 		}
 
 		public void RunScript (string filename)
@@ -212,7 +217,7 @@ namespace OpenRA.Autobot
 				} else if (arg is Int32) {
 					lua_pushinteger (lua, (int)arg);
 				} else if (arg is Actor) {
-					PushActor(lua, arg as Actor);
+					push_actor(lua, arg as Actor);
 				} else {
 					throw new NotImplementedException ("Unsupported argument type: " + arg.GetType ().ToString ());
 				}
@@ -228,90 +233,26 @@ namespace OpenRA.Autobot
 			throw new Exception("Error: " + lua_tostring(lua,-1));
 		}
 
-		private void RegisterAPI ()
+		private void LoadFunctionsFromAssembly (Assembly ass)
 		{
-			var world = Game.orderManager.world;
+			var types = ass.GetTypes();
+			var methods = types.SelectMany(t => t.GetMethods())
+				.Where(m => m.GetCustomAttributes(false).OfType<LuaFunctionAttribute>().Count() > 0)
+				.ToArray();
+				
+			foreach (var m in methods) {
+				LuaFunctionAttribute fat = m.GetCustomAttributes(false).OfType<LuaFunctionAttribute>().FirstOrDefault();
 
-			#region void log(...)
-			lua_register(lua, "log", delegate(IntPtr l) {
-				int args = lua_gettop(l);
+				lua_register(lua, fat.Name, delegate(IntPtr l) {
+					var ret = m.Invoke(null, new object[] { new LuaFunctionParams(lua) });
+					return (int)ret;
+				});
+			}
 
-				StringBuilder sb = new StringBuilder();
-				for(int i = 1; i <= args; ++i) {
-					if(lua_isnumber(l, i)) {
-						sb.Append(lua_tointeger(l, i));
-					} else {
-						sb.Append(lua_tostring(l, i));
-					}
-				}
-
-				sb.AppendLine();
-
-				Bot.Log(sb.ToString());
-				return 0;
-			});
-			#endregion
-
-			#region array FindUnitByName(name)
-			lua_register(lua, "FindUnitByName", delegate(IntPtr l) {
-				int args = lua_gettop(l);
-
-				if(args != 1) {
-					Bot.Log("FindUnitByName: incorrect number of parameters");
-					return 0;
-				}
-
-				string name = lua_tostring(l, 1);
-
-				// Find the first unit of the given type & return it
-				foreach(var actor in world.ActorsWithTrait<Selectable>()) {
-					Actor a = actor.Actor;
-
-					if(a.Owner != world.LocalPlayer) {
-						// Not our unit
-						continue;
-					}
-
-					if(a.Info.Name.Equals( name, StringComparison.OrdinalIgnoreCase)) {
-						PushActor(l, a);
-						return 1;
-					}
-				}
-
-				lua_pushnil(l);
-				return 1;
-			});
-			#endregion
-
-			#region void DeployUnit(unit)
-			lua_register(lua, "DeployUnit", delegate(IntPtr l) {
-				int args = lua_gettop(l);
-				if(args != 1 ) {
-					Bot.Log("invalid parameter count");
-					return 0;
-				}
-
-				if(!lua_istable(l, 1)) {
-					Bot.Log("invalid argument type");
-					return 0;
-				}
-
-				lua_getfield(l, 1, "id");
-				uint i = (uint)lua_tointeger(l, -1);
-				lua_pop(l, 1);
-
-				Bot.Log("Deploying unit " + i);
-				world.IssueOrder(new Order("DeployTransform", world.GetActorById(i), false));
-
-				return 0;
-			});
-			#endregion
+			Bot.Log("Loaded " + methods.Length + " functions from assembly " + ass.GetName());
 		}
 
-		/// <summary>
-		/// Pushes an actor into a table on the stack.
-		/// </summary>
-		private static void PushActor (IntPtr lua, Actor a)
+		private static void push_actor (IntPtr lua, Actor a)
 		{
 			lua_newtable(lua);
 			lua_pushstring(lua, a.Info.Name);
@@ -326,6 +267,69 @@ namespace OpenRA.Autobot
 			lua_close(lua);
 		}
 		#endregion
+
+		public class LuaFunctionParams
+		{
+			IntPtr lua;
+
+			public LuaFunctionParams(IntPtr l)
+			{
+				lua = l;
+			}
+
+			public int Arguments { get { return lua_gettop(lua); } }
+
+			public bool IsNumber (int index)
+			{
+				return lua_isnumber (lua, index);
+			}
+
+			public bool IsTable(int index)
+			{
+				return lua_istable (lua, index);
+			}
+
+
+			public int ToInteger (int index)
+			{
+				return lua_tointeger (lua, index);
+			}
+
+			public string ToString(int index)
+			{
+				return lua_tostring(lua, index);
+			}
+
+			public void PushActor(Actor a)
+			{
+				push_actor(lua, a);
+			}
+
+			public void PushNil()
+			{
+				lua_pushnil(lua);
+			}
+
+			public void PushString(string s)
+			{
+				lua_pushstring(lua, s);
+			}
+
+			public void PushInt (int i)
+			{
+				lua_pushinteger(lua, i);
+			}
+
+			public void Pop(int amount)
+			{
+				lua_pop (lua, amount);
+			}
+
+			public void GetField(int index, string key)
+			{
+				lua_getfield(lua, index, key);
+			}
+		}
 	}
 }
 

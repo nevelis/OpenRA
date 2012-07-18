@@ -10,6 +10,7 @@
 
 using System.Collections.Generic;
 using OpenRA.Traits;
+using OpenRA.Autobot;
 
 namespace OpenRA.Mods.RA.Buildings
 {
@@ -120,6 +121,14 @@ namespace OpenRA.Mods.RA.Buildings
 				if (PowerProvided > PowerDrained / 2) return PowerState.Low;
 				return PowerState.Critical;
 			}
+		}
+
+		[LuaFunction(Name="GetPowerExcess")]
+		public static int GetPowerExcess(Lua.LuaFunctionParams fun)
+		{
+			var power = Game.CurrentWorld.LocalPlayer.PlayerActor.Trait<PowerManager>();
+			fun.PushInt(power.ExcessPower);
+			return 1;
 		}
 	}
 }

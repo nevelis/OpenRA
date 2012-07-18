@@ -202,6 +202,7 @@ namespace OpenRA
 			LobbyInfoChanged();
 		}
 
+		public static World CurrentWorld { get; private set; }
 		public static event Action BeforeGameStart = () => {};
 		internal static void StartGame(string mapUID, bool isShellmap)
 		{
@@ -209,8 +210,10 @@ namespace OpenRA
 
 			var map = modData.PrepareMap(mapUID);
 			viewport = new Viewport(new int2(Renderer.Resolution), map.Bounds, Renderer);
-			orderManager.world = new World(modData.Manifest, map, orderManager) { IsShellmap = isShellmap };
-			worldRenderer = new WorldRenderer(orderManager.world);
+
+			CurrentWorld = new World(modData.Manifest, map, orderManager) { IsShellmap = isShellmap };
+			orderManager.world = CurrentWorld;
+			worldRenderer = new WorldRenderer(CurrentWorld);
 
 			if (orderManager.GameStarted) return;
 			Ui.SelectedWidget = null;
