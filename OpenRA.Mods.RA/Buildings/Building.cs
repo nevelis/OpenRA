@@ -6,6 +6,9 @@
  * as published by the Free Software Foundation. For more information,
  * see COPYING.
  */
+using OpenRA.Autobot;
+
+
 #endregion
 
 using System;
@@ -113,5 +116,17 @@ namespace OpenRA.Mods.RA.Buildings
 		{
 			PlayerPower = newOwner.PlayerActor.Trait<PowerManager>();
 		}
+
+		[LuaFunction(Name="GetBuildingCount")]
+		public static int Lua_GetBuildingCount(Lua.LuaFunctionParams fun)
+		{
+			var actors = Game.CurrentWorld.Actors.ToArray();
+			var actors_where = actors.Where ( a => a.HasTrait<GivesBuildableArea>()).ToArray()
+				.Where (a=>a.Info.Name == fun.ToString(1));
+			fun.PushInt(actors_where.Count());
+			return 1;
+		}
+	
 	}
+
 }

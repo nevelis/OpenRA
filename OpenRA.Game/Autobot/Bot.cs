@@ -69,7 +69,10 @@ namespace OpenRA.Autobot
 
 		private static void RunAutobot ()
 		{
-			Game.RunAfterTick( delegate() {
+			Game.RunAfterTick(delegate() {
+				if(lua != null) {
+					lua.Dispose ();
+				}
 				lua = new Lua();
 
 				Run(delegate() {

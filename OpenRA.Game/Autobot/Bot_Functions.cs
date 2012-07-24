@@ -15,6 +15,8 @@ namespace OpenRA.Autobot
 			for(int i = 1; i <= args; ++i) {
 				if(fun.IsNumber(i)) {
 					sb.Append(fun.ToInteger(i));
+				} else if(fun.IsBoolean(i)) {
+					sb.Append (fun.ToBoolean(i).ToString());
 				} else {
 					sb.Append(fun.ToString(i));
 				}

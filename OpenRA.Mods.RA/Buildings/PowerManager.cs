@@ -6,6 +6,9 @@
  * as published by the Free Software Foundation. For more information,
  * see COPYING.
  */
+using System;
+
+
 #endregion
 
 using System.Collections.Generic;
@@ -124,8 +127,12 @@ namespace OpenRA.Mods.RA.Buildings
 		}
 
 		[LuaFunction(Name="GetPowerExcess")]
-		public static int GetPowerExcess(Lua.LuaFunctionParams fun)
+		public static int GetPowerExcess (Lua.LuaFunctionParams fun)
 		{
+			if (Game.CurrentWorld == null) {
+				throw new Exception("World not set!");
+			}
+
 			var power = Game.CurrentWorld.LocalPlayer.PlayerActor.Trait<PowerManager>();
 			fun.PushInt(power.ExcessPower);
 			return 1;

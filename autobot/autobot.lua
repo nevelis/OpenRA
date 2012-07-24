@@ -4,7 +4,7 @@
 
 -- Some global state for our bot
 state = {
-	bases = 0,      -- How many bases we currently have
+	relocating_mcv = false,
 	building = nil, -- Which building we are constructing, nil if none
 	infantry = nil  -- Which unit we're building, nil if none
 }
@@ -15,7 +15,7 @@ army = {}
 -- Called when '/run' is typed in the chat box
 function OnInit()
 	log('Autobot Script Starting...')
-	log('Team: ', Team())
+	-- log('Team: ', Team())
 
 	-- Set team-specific buildings & army sizes
 	if Team() == 'allies' then
@@ -33,24 +33,33 @@ end
 function OnThink()
 	log('Thinking...')
 
-	if state['bases'] == 0 then
-		log('No base! Finding MCV...')
-
-		local mcv = FindUnitByName('mcv')
-		if mcv == nil then
-			log('PANIC: NO MCV!')
-			return
-		end
-
-		log('Found unit: ', mcv['name'], ', id: ', mcv['id'])
-
-		-- Deploy it if we can
-		log('Deploying unit...')
-		DeployUnit(mcv)
-	end
-
-	pickNextBuilding()
-	pickNextInfantry()
+	log('CanBuild("powr"): ', CanBuild('powr'))
+-- 
+-- 	-- If we don't have a construction yard deployed
+-- 	local x = GetBuildingCount('fact')
+-- 	log('Found ', x, ' buildings matching "fact"')
+-- 
+-- 	if x == 0 then
+-- 		-- Lets not deply the MCV if we're intentionally moving it...
+-- 		if state['relocating_mcv'] == false then
+-- 			log('No base! Finding MCV...')
+-- 
+-- 			local mcv = FindUnitByName('mcv')
+-- 			if mcv == nil then
+-- 				log('PANIC: NO MCV!')
+-- 				return
+-- 			end
+-- 
+-- 			log('Found unit: ', mcv['name'], ', id: ', mcv['id'])
+-- 
+-- 			-- Deploy it if we can
+-- 			log('Deploying unit...')
+-- 			DeployUnit(mcv)
+-- 		end
+-- 	end
+-- 
+-- 	pickNextBuilding()
+-- 	pickNextInfantry()
 end
 
 -- Called when a unit is deployed. Parameter is the new unit/building
@@ -58,7 +67,6 @@ function OnUnitDeployed(unit)
 	log('Unit deployed: ', unit['name'], ', id: ', unit['id'])
 
 	if unit['name'] == 'fact' then
-		state['bases'] = state['bases'] + 1
 		log('MCV deployed, base operational!')
 	end
 end
@@ -121,6 +129,7 @@ function pickNextBuilding()
 
 	-- Check our power level
 	local p = GetPowerExcess()
+    log('Power excess: ', p)
 	if p <= 0 then
 		log('Need power (have ', p, ') - building power plant')
 

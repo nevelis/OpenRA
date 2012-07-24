@@ -6,6 +6,9 @@
  * as published by the Free Software Foundation. For more information,
  * see COPYING.
  */
+using OpenRA.Autobot;
+
+
 #endregion
 
 using System.Collections.Generic;
@@ -68,6 +71,22 @@ namespace OpenRA.Mods.RA
 					ret[ p ].Add( b.Actor );
 
 			return ret;
+		}
+
+		[LuaFunction(Name="CanBuild")]
+		public static int Lua_CanBuild (Lua.LuaFunctionParams fun)
+		{
+			foreach (var b in Game.CurrentWorld.ActorsWithTrait<ITechTreePrerequisite>()
+				.Where(a => a.Actor.IsInWorld && !a.Actor.IsDead() && a.Actor.Owner == Game.CurrentWorld.LocalPlayer)
+			) {
+				if( b.Trait.ProvidesPrerequisites.Any( x => x == fun.ToString(1) ) ) {
+					fun.PushBoolean(true);
+					return 1;
+				}
+			}
+
+			fun.PushBoolean(false);
+			return 1;
 		}
 
 		class Watcher

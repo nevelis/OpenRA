@@ -5,6 +5,7 @@ using System.Text;
 using OpenRA.Traits;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace OpenRA.Autobot
 {
@@ -147,6 +148,17 @@ namespace OpenRA.Autobot
 		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
 		static extern void lua_setfield(IntPtr l, int index, string key);
 
+		static bool lua_isboolean(IntPtr l, int index)
+		{
+			return (LuaType)lua_type (l, index) == LuaType.LUA_TBOOLEAN;
+		}
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern int lua_toboolean(IntPtr l, int index);
+
+		[DllImport(LUA_DLL, CallingConvention=CallingConvention.Cdecl)]
+		static extern void lua_pushboolean(IntPtr l, int i);
+
 		#endregion
 
 		private IntPtr lua = IntPtr.Zero;
@@ -233,6 +245,10 @@ namespace OpenRA.Autobot
 			throw new Exception("Error: " + lua_tostring(lua,-1));
 		}
 
+
+		// For some reason 'm' goes missing but 'fat.Name' stays in scope, so we save the MethodInfo things in here
+		static Dictionary<string, MethodInfo> function_dict = new Dictionary<string, MethodInfo>();
+
 		private void LoadFunctionsFromAssembly (Assembly ass)
 		{
 			var types = ass.GetTypes();
@@ -242,14 +258,16 @@ namespace OpenRA.Autobot
 				
 			foreach (var m in methods) {
 				LuaFunctionAttribute fat = m.GetCustomAttributes(false).OfType<LuaFunctionAttribute>().FirstOrDefault();
-
+				function_dict[fat.Name] = m;
 				lua_register(lua, fat.Name, delegate(IntPtr l) {
-					var ret = m.Invoke(null, new object[] { new LuaFunctionParams(lua) });
+					var func = function_dict[fat.Name];
+					var ret = func.Invoke(null, new object[] { new LuaFunctionParams(lua) });
 					return (int)ret;
 				});
 			}
 
 			Bot.Log("Loaded " + methods.Length + " functions from assembly " + ass.GetName());
+			Bot.Log(string.Join (", ", methods.Select( m => m.Name ).ToArray()));
 		}
 
 		private static void push_actor (IntPtr lua, Actor a)
@@ -289,6 +307,15 @@ namespace OpenRA.Autobot
 				return lua_istable (lua, index);
 			}
 
+			public bool IsBoolean (int index)
+			{
+				return lua_isboolean(lua, index);
+			}
+
+			public bool ToBoolean (int index)
+			{
+				return lua_toboolean(lua, index) == 1;
+			}
 
 			public int ToInteger (int index)
 			{
@@ -318,6 +345,11 @@ namespace OpenRA.Autobot
 			public void PushInt (int i)
 			{
 				lua_pushinteger(lua, i);
+			}
+
+			public void PushBoolean (bool b)
+			{
+				lua_pushboolean(lua, b ? 1 : 0);
 			}
 
 			public void Pop(int amount)
