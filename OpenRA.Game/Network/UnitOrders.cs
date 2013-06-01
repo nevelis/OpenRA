@@ -111,7 +111,11 @@ namespace OpenRA.Network
 				case "HandshakeRequest":
 					{
 						var request = HandshakeRequest.Deserialize(order.TargetString);
+						var localMods = orderManager.LobbyInfo.GlobalSettings.Mods.Select(m => "{0}@{1}".F(m,Mod.AllMods[m].Version)).ToArray();
 
+						// Check if mods match
+						if (localMods.FirstOrDefault().ToString().Split('@')[0] != request.Mods.FirstOrDefault().ToString().Split('@')[0])
+							throw new InvalidOperationException("Server's mod ({0}) and yours ({1}) don't match".F(localMods.FirstOrDefault().ToString().Split('@')[0], request.Mods.FirstOrDefault().ToString().Split('@')[0]));
 						// Check that the map exists on the client
 						if (!Game.modData.AvailableMaps.ContainsKey(request.Map))
 							throw new InvalidOperationException("Missing map {0}".F(request.Map));
@@ -119,6 +123,7 @@ namespace OpenRA.Network
 						var info = new Session.Client()
 						{
 							Name = Game.Settings.Player.Name,
+							PreferredColorRamp = Game.Settings.Player.ColorRamp,
 							ColorRamp = Game.Settings.Player.ColorRamp,
 							Country = "random",
 							SpawnPoint = 0,
@@ -126,7 +131,6 @@ namespace OpenRA.Network
 							State = Session.ClientState.NotReady
 						};
 
-						var localMods = orderManager.LobbyInfo.GlobalSettings.Mods.Select(m => "{0}@{1}".F(m,Mod.AllMods[m].Version)).ToArray();
 						var response = new HandshakeResponse()
 						{
 							Client = info,
@@ -198,8 +202,7 @@ namespace OpenRA.Network
 		{
 			var oldStance = p.Stances[target];
 			p.Stances[target] = s;
-			if (target == w.LocalPlayer)
-				w.WorldActor.Trait<Shroud>().UpdatePlayerStance(w, p, oldStance, s);
+			target.Shroud.UpdatePlayerStance(w, p, oldStance, s);
 
 			foreach (var nsc in w.ActorsWithTrait<INotifyStanceChanged>())
 				nsc.Trait.StanceChanged(nsc.Actor, p, target, oldStance, s);

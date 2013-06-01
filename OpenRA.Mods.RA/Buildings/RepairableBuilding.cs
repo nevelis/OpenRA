@@ -19,6 +19,7 @@ namespace OpenRA.Mods.RA.Buildings
 		public readonly int RepairPercent = 20;
 		public readonly int RepairInterval = 24;
 		public readonly int RepairStep = 7;
+		public readonly string IndicatorPalettePrefix = "player";
 
 		public object Create(ActorInitializer init) { return new RepairableBuilding(init.self, this); }
 	}
@@ -51,7 +52,7 @@ namespace OpenRA.Mods.RA.Buildings
 						Sound.PlayNotification(Repairer, "Speech", "Repairing", self.Owner.Country.Race);
 
 						self.World.AddFrameEndTask(
-							w => w.Add(new RepairIndicator(self, p)));
+							w => w.Add(new RepairIndicator(self, Info.IndicatorPalettePrefix, p)));
 					}
 				}
 			}
@@ -74,7 +75,7 @@ namespace OpenRA.Mods.RA.Buildings
 				var buildingValue = self.GetSellValue();
 
 				var hpToRepair = Math.Min(Info.RepairStep, Health.MaxHP - Health.HP);
-				var cost = (hpToRepair * Info.RepairPercent * buildingValue) / (Health.MaxHP * 100);
+				var cost = Math.Max(1, (hpToRepair * Info.RepairPercent * buildingValue) / (Health.MaxHP * 100));
 				if (!Repairer.PlayerActor.Trait<PlayerResources>().TakeCash(cost))
 				{
 					remainingTicks = 1;

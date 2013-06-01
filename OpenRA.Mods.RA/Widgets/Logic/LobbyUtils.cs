@@ -23,6 +23,8 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 	{
 		public static void SetupNameWidget(OrderManager orderManager, Session.Client c, TextFieldWidget name)
 		{
+			if (c.IsAdmin)
+				name.Font = "Bold";
 			name.Text = c.Name;
 			name.OnEnterKey = () =>
 			{
@@ -121,7 +123,7 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 		}
 
 		public static void ShowColorDropDown(DropDownButtonWidget color, Session.Client client,
-			OrderManager orderManager, ColorPickerPaletteModifier preview)
+			OrderManager orderManager, ColorPreviewManagerWidget preview)
 		{
 			Action<ColorRamp> onSelect = c =>
 			{
@@ -151,7 +153,7 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 		{
 			var spawns = map.GetSpawnPoints();
 			return orderManager.LobbyInfo.Clients
-				.Where( c => c.SpawnPoint != 0 )
+				.Where( c => c.SpawnPoint != 0)
 				.ToDictionary(
 					c => spawns[c.SpawnPoint - 1],
 					c => c.ColorRamp.GetColor(0));
@@ -173,8 +175,17 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 			if (selectedSpawn == 0 || !owned)
 			{
 				var locals = orderManager.LobbyInfo.Clients.Where(c => c.Index == orderManager.LocalClient.Index || (Game.IsHost && c.Bot != null));
-				var playerToMove = locals.Where(c => (selectedSpawn == 0) ^ (c.SpawnPoint == 0)).FirstOrDefault();
+				var playerToMove = locals.FirstOrDefault(c => (selectedSpawn == 0) ^ (c.SpawnPoint == 0));
 				orderManager.IssueOrder(Order.Command("spawn {0} {1}".F((playerToMove ?? orderManager.LocalClient).Index, selectedSpawn)));
+			}
+		}
+
+		public static void ShowSpawnPointTooltip(OrderManager orderManager, int spawnPoint, int2 position)
+		{
+			var client = orderManager.LobbyInfo.Clients.FirstOrDefault(c => c.SpawnPoint == spawnPoint);
+			if (client != null)
+			{
+				Game.Renderer.Fonts["Bold"].DrawTextWithContrast(client.Name, position + new int2(5, 5), Color.White, Color.Black, 1);
 			}
 		}
 	}

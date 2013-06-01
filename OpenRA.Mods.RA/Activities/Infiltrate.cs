@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
@@ -9,6 +9,7 @@
 #endregion
 
 using System.Linq;
+using OpenRA.Mods.RA.Buildings;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA.Activities
@@ -27,12 +28,20 @@ namespace OpenRA.Mods.RA.Activities
 			if( !target.OccupiesSpace.OccupiedCells().Any( x => x.First == self.Location ) )
 				return NextActivity;
 
-			foreach (var t in target.TraitsImplementing<IAcceptSpy>())
+			foreach (var t in target.TraitsImplementing<IAcceptInfiltrator>())
 				t.OnInfiltrate(target, self);
 
-			self.Destroy();
+			if (self.HasTrait<DontDestroyWhenInfiltrating>())
+				self.World.AddFrameEndTask(w =>
+				{
+					if (self.Destroyed) return;
+					w.Remove(self);
+				});
+			else
+				self.Destroy();
 
-			Sound.PlayToPlayer(self.Owner, "bldginf1.aud");
+			if (target.HasTrait<Building>())
+				Sound.PlayToPlayer(self.Owner, "bldginf1.aud");
 
 			return this;
 		}

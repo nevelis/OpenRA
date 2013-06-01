@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
@@ -126,7 +126,7 @@ namespace OpenRA.Mods.RA
 				firedBy = self,
 				target = target,
 
-				src = (self.CenterLocation + Combat.GetBarrelPosition(self, facing, Turret, barrel)),
+				src = (self.CenterLocation + (PVecInt)Combat.GetBarrelPosition(self, facing, Turret, barrel).ToInt2()),
 				srcAltitude = move != null ? move.Altitude : 0,
 				dest = target.CenterLocation,
 				destAltitude = destMove != null ? destMove.Altitude : 0,
@@ -148,8 +148,8 @@ namespace OpenRA.Mods.RA
 					if (projectile != null)
 						self.World.Add(projectile);
 
-					if (!string.IsNullOrEmpty(args.weapon.Report))
-						Sound.Play(args.weapon.Report + ".aud", self.CenterLocation);
+					if (args.weapon.Report != null && args.weapon.Report.Any())
+						Sound.Play(args.weapon.Report.Random(self.World.SharedRandom) + ".aud", self.CenterLocation);
 				}
 			});
 

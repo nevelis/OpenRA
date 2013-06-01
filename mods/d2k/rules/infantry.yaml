@@ -4,22 +4,24 @@ RIFLE:
 		Queue: Infantry
 		BuildPaletteOrder: 10
 		Owner: atreides,harkonnen,ordos
+		Hotkey: r
 	Valued:
 		Cost: 100
 	Tooltip:
 		Name: Rifleman
-		Description: General-purpose infantry.\n  Strong vs Infantry\n  Weak vs Vehicles
+		Description: General-purpose infantry\n  Strong vs Infantry\n  Weak vs Vehicles, Artillery
 	Selectable:
 		Bounds: 12,17,0,0
 	Health:
 		HP: 50
 	Mobile:
-		Speed: 4
+		Speed: 5
 	AttackFrontal:
 		PrimaryWeapon: M1Carbine
 	TakeCover:
 	-RenderInfantry:
 	RenderInfantryProne:
+		IdleAnimations: idle1,idle2
 
 ENGINEER:
 	Inherits: ^Infantry
@@ -27,22 +29,24 @@ ENGINEER:
 		Queue: Infantry
 		BuildPaletteOrder: 50
 		Owner: atreides,harkonnen,ordos
+		Hotkey: e
 	Valued:
 		Cost: 500
 	Tooltip:
 		Name: Engineer
-		Description: Infiltrates and captures enemy structures.\n  Strong vs Nothing\n  Weak vs Everything
+		Description: Infiltrates and captures enemy structures\n  Strong vs Nothing\n  Weak vs Everything
 	Selectable:
 		Bounds: 12,17,0,0
 		Voice: EngineerVoice
 	Health:
 		HP: 25
 	Mobile:
-		Speed: 4
+		Speed: 5
 	Passenger:
+		PipType: Yellow
 	EngineerRepair:
 	Captures:
-	TakeCover:
+	#TakeCover:
 	-AutoTarget:
 	AttackMove:
 		JustMove: true
@@ -53,17 +57,18 @@ BAZOOKA:
 		Queue: Infantry
 		BuildPaletteOrder: 20
 		Owner: atreides,harkonnen,ordos
+		Hotkey: t
 	Valued:
-		Cost: 300
+		Cost: 250
 	Tooltip:
 		Name: Trooper
-		Description: Anti-tank/Anti-aircraft infantry.\n  Strong vs Tanks, Aircraft\n  Weak vs Infantry
+		Description: Anti-tank/Anti-aircraft infantry\n  Strong vs Tanks, Aircraft\n  Weak vs Infantry, Artillery
 	Selectable:
 		Bounds: 12,17,0,0
 	Health:
 		HP: 45
 	Mobile:
-		Speed: 3
+		Speed: 4
 	AttackFrontal:
 		PrimaryWeapon: RedEye
 		SecondaryWeapon: Dragon
@@ -71,55 +76,89 @@ BAZOOKA:
 	TakeCover:
 	-RenderInfantry:
 	RenderInfantryProne:
+		IdleAnimations: idle1,idle2
 
-THUMPER:
+MEDIC:
 	Inherits: ^Infantry
 	Buildable:
 		Queue: Infantry
-		BuildPaletteOrder: 50
-		Owner: atreides,harkonnen,ordos
+		BuildPaletteOrder: 60
+		Owner: atreides,ordos
+		Prerequisites: research
+		Hotkey: m
 	Valued:
-		Cost: 400
+		Cost: 500
 	Tooltip:
-		Name: Thumper
-		Description: Attracts sandsworm through vibrations.\n  Strong vs Nothing\n  Weak vs Everything
+		Name: Medic
+		Description: Heals nearby infantry\n  Strong vs Nothing\n  Weak vs Everything
+		Icon: thumpericon
 	Selectable:
 		Bounds: 12,17,0,0
+		Voice: EngineerVoice
 	Health:
-		HP: 25
+		HP: 60
 	Mobile:
 		Speed: 4
+	AutoHeal:
+	AttackMedic:
+		PrimaryWeapon: Heal
 	Passenger:
+		PipType: Blue
 	-AutoTarget:
 	AttackMove:
 		JustMove: true
-	Transforms:
-		IntoActor: thumping
-		Offset:1,1
-		Facing: 1
+	RenderInfantry:
+		Image: THUMPER
 
-THUMPING:
-	Inherits: ^Building
-	Building:
-		Power: 0
-		Footprint: x
-		Dimensions: 1,1
-		TerrainTypes: Sand, Dune
-	Health:
-		HP: 25
-	Armor:
-		Type: None
-	RevealsShroud:
-		Range: 5
-	Valued:
-		Cost: 400
-	Tooltip:
-		Name: Thumper
-	-Capturable:
-	-CapturableBar:
-	-Sellable:
-	-GivesBuildableArea:
-	FreeActor:
-		Actor: SANDWORM
-		SpawnOffset: 1,2
-		Facing: 1
+
+#THUMPER:
+#	Inherits: ^Infantry
+#	Buildable:
+#		Queue: Infantry
+#		BuildPaletteOrder: 50
+#		Owner: atreides,harkonnen,ordos
+#	Valued:
+#		Cost: 400
+#	Tooltip:
+#		Name: Thumper
+#		Description: Attracts sandsworm through vibrations\n  Strong vs Nothing\n  Weak vs Everything
+#	Selectable:
+#		Bounds: 12,17,0,0
+#	Health:
+#		HP: 25
+#	Mobile:
+#		Speed: 4
+#	Passenger:
+#	-AutoTarget:
+#	AttackMove:
+#		JustMove: true
+#	Transforms:
+#		IntoActor: thumping
+#		Offset:1,1
+#		Facing: 1
+#
+#THUMPING:
+#	Inherits: ^Building
+#	Building:
+#		Power: 0
+#		Footprint: x
+#		Dimensions: 1,1
+#		TerrainTypes: Sand, Dune
+#	Health:
+#		HP: 25
+#	Armor:
+#		Type: None
+#	RevealsShroud:
+#		Range: 5
+#	Valued:
+#		Cost: 400
+#	Tooltip:
+#		Name: Thumper
+#	-Capturable:
+#	-CapturableBar:
+#	-Sellable:
+#	-GivesBuildableArea:
+#	FreeActor:
+#		Actor: SANDWORM
+#		SpawnOffset: 1,2
+#		Facing: 1

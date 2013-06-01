@@ -39,7 +39,7 @@ namespace OpenRA.Graphics
 
 			int nv = 0;
 
-			var terrainPalette = Game.modData.Palette.GetPaletteIndex("terrain");
+			var terrainPalette = wr.Palette("terrain").Index;
 
 			for( int j = map.Bounds.Top; j < map.Bounds.Bottom; j++ )
 				for( int i = map.Bounds.Left; i < map.Bounds.Right; i++ )
@@ -72,9 +72,9 @@ namespace OpenRA.Graphics
 			if (firstRow < 0) firstRow = 0;
 			if (lastRow > map.Bounds.Height) lastRow = map.Bounds.Height;
 
-			if (world.LocalPlayer != null && !world.LocalShroud.Disabled && world.LocalShroud.Bounds.HasValue)
+			if (world.RenderedPlayer != null && !world.RenderedShroud.Disabled && world.RenderedShroud.Bounds.HasValue)
 			{
-				var r = world.LocalShroud.Bounds.Value;
+				var r = world.RenderedShroud.Bounds.Value;
 				if (firstRow < r.Top - map.Bounds.Top)
 					firstRow = r.Top - map.Bounds.Top;
 
@@ -84,11 +84,9 @@ namespace OpenRA.Graphics
 
 			if( lastRow < firstRow ) lastRow = firstRow;
 
-			Game.Renderer.WorldSpriteShader.SetValue( "DiffuseTexture", terrainSheet.Texture );
-			Game.Renderer.WorldSpriteShader.Render(() =>
-				Game.Renderer.DrawBatch(vertexBuffer,
-					verticesPerRow * firstRow, verticesPerRow * (lastRow - firstRow),
-					PrimitiveType.QuadList));
+			Game.Renderer.WorldSpriteRenderer.DrawVertexBuffer(
+				vertexBuffer, verticesPerRow * firstRow, verticesPerRow * (lastRow - firstRow),
+				PrimitiveType.QuadList, terrainSheet);
 
 			foreach (var r in world.WorldActor.TraitsImplementing<IRenderOverlay>())
 				r.Render( wr );

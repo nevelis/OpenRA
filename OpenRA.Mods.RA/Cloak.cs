@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using OpenRA.Graphics;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA
@@ -23,6 +24,7 @@ namespace OpenRA.Mods.RA
 		public string CloakSound = "subshow1.aud";
 		public string UncloakSound = "subshow1.aud";
 		public readonly string Palette = "cloak";
+		public readonly bool UncloakOnMove = false;
 
 		public object Create(ActorInitializer init) { return new Cloak(init.self, this); }
 	}
@@ -34,6 +36,7 @@ namespace OpenRA.Mods.RA
 
 		Actor self;
 		CloakInfo info;
+		CPos? lastPos;
 
 		public Cloak(Actor self, CloakInfo info)
 		{
@@ -65,13 +68,13 @@ namespace OpenRA.Mods.RA
 
 		static readonly Renderable[] Nothing = { };
 
-		public IEnumerable<Renderable> ModifyRender(Actor self, IEnumerable<Renderable> rs)
+		public IEnumerable<Renderable> ModifyRender(Actor self, WorldRenderer wr, IEnumerable<Renderable> r)
 		{
 			if (remainingTime > 0)
-				return rs;
+				return r;
 
 			if (Cloaked && IsVisible(self))
-				return rs.Select(a => a.WithPalette(info.Palette));
+				return r.Select(a => a.WithPalette(wr.Palette(info.Palette)));
 			else
 				return Nothing;
 		}
@@ -83,15 +86,34 @@ namespace OpenRA.Mods.RA
 					Sound.Play(info.CloakSound, self.CenterLocation);
 			if (self.IsDisabled())
 				Uncloak();
-		}
 
+			if (info.UncloakOnMove && (lastPos == null || lastPos.Value != self.Location))
+			{
+				Uncloak();
+				lastPos = self.Location;
+			}
+		}
+		
 		public bool IsVisible(Actor self)
 		{
-			if (!Cloaked || self.Owner == self.World.LocalPlayer ||
-				self.World.LocalPlayer == null ||
-				self.Owner.Stances[self.World.LocalPlayer] == Stance.Ally)
-				return true;
+			return IsVisible(null, self);
+		}
 
+		public bool IsVisible(Shroud s, Actor self)
+		{			
+		    if (self.World.LocalPlayer != null) {
+			    if (s == null) {
+    				if (!Cloaked || self.Owner == self.World.LocalPlayer ||
+    					self.Owner.Stances[self.World.LocalPlayer] == Stance.Ally)
+    					return true;
+    			}
+    			else {
+    				if (!Cloaked || self.Owner == s.Owner ||
+    					self.Owner.Stances[s.Owner] == Stance.Ally)
+    					return true;
+    			}
+			}
+			
 			return self.World.ActorsWithTrait<DetectCloaked>().Any(a =>
 				a.Actor.Owner.Stances[self.Owner] != Stance.Ally &&
 				(self.Location - a.Actor.Location).Length < a.Actor.Info.Traits.Get<DetectCloakedInfo>().Range);

@@ -11,6 +11,26 @@ Player:
 	DeveloperMode:
 	HackyAI@Default:
 		Name:Easy AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: nuke,nuk2
+			Barracks: pyle,hand
+			VehiclesFactory: weap,afld
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			pyle: 2
+			hand: 2
+			hq: 1
+			weap: 2
+			afld: 2
+			hpad: 1
+			eye: 1
+			tmpl: 1
+			fix: 1
 		BuildingFractions:
 			proc: 20%
 			nuke: 9%
@@ -28,8 +48,8 @@ Player:
 			eye: 1%
 			tmpl: 1%
 			silo: 4%
-			fix: 1%
-			hpad: 2%
+#			fix: 1%
+#			hpad: 2%
 		UnitsToBuild:
 			e1: 14%
 			e3: 7%
@@ -49,10 +69,73 @@ Player:
 			htnk: 50%
 			heli: 5%
 			orca: 5%
+		SquadSize: 15
+	HackyAI@Normal:
+		Name:Normal AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: nuke,nuk2
+			Barracks: pyle,hand
+			VehiclesFactory: weap,afld
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			pyle: 2
+			hand: 2
+			hq: 1
+			weap: 2
+			afld: 2
+			hpad: 1
+			eye: 1
+			tmpl: 1
+			fix: 1
+		BuildingFractions:
+			proc: 17%
+			nuke: 1%
+			pyle: 2%
+			hand: 2%
+			hq: 1%
+			nuk2: 18%
+			weap: 5%
+			afld: 5%
+			hpad: 4%
+			gtwr: 5%
+			gun: 5%
+			atwr: 9%
+			obli: 7%
+			eye: 1%
+			tmpl: 1%
+			sam: 7%
+			silo: 7%
+			fix: 1%
+		UnitsToBuild:
+			e1: 30%
+			e2: 30%
+			e3: 30%
+			e4: 30%
+			e5: 30%
+			harv: 1%
+			bggy: 10%
+			ftnk: 10%
+			arty: 40%
+			bike: 10%
+			heli: 10%
+			ltnk: 40%
+			stnk: 40%
+			orca: 10%
+			msam: 50%
+			htnk: 50%
+			jeep: 20%
+			mtnk: 50%
+		SquadSize: 15
 	PlayerColorPalette:
 		BasePalette: terrain
 		RemapIndex: 176, 178, 180, 182, 184, 186, 189, 191, 177, 179, 181, 183, 185, 187, 188, 190
 	BaseAttackNotifier:
+	Shroud:
 
 World:
 	LoadWidgetAtGameStart:
@@ -62,7 +145,6 @@ World:
 	ScreenShaker:
 	NukePaletteEffect:
 	WaterPaletteRotation:
-		Base: 32
 	BuildingInfluence:
 	BridgeLayer:
 		Bridges: bridge1, bridge2, bridge3, bridge4
@@ -80,6 +162,11 @@ World:
 		Name: effect
 		Filename: temperat.pal
 		ShadowIndex: 4
+	PaletteFromFile@colorpicker:
+		Name: colorpicker
+		Filename: temperat.pal
+		ShadowIndex: 4
+		AllowModifiers: false
 	PaletteFromRGBA@shadow:
 		Name: shadow
 		R: 0
@@ -104,11 +191,8 @@ World:
 		G: 0
 		B: 0
 		A: 180
-	ColorPickerPaletteModifier:
-	ShroudPalette@shroud:
-	ShroudPalette@fog:
-		IsFog: yes
-		Name: fog
+	ShroudPalette:
+	FogPalette:
 	Country@gdi:
 		Name: GDI
 		Race: gdi
@@ -136,7 +220,7 @@ World:
 		TerrainType: BlueTiberium
 		SpriteNames: bti1,bti2,bti3,bti4,bti5,bti6,bti7,bti8,bti9,bti10,bti11,bti12
 		ValuePerUnit: 75
-		Name: Blue Tiberium
+		Name: BlueTiberium
 		PipColor: Blue
 		AllowedTerrainTypes: Clear,Road
 		AllowUnderActors: false
@@ -156,9 +240,10 @@ World:
 	SpatialBins:
 		BinSize: 4
 	Shroud:
+	Fog:
 	CrateSpawner:
 		Minimum: 1
-		Maximum: 3
+		Maximum: 6
 		SpawnInterval: 120
 		WaterChance: 0
 	PathFinder:
@@ -170,30 +255,28 @@ CRATE:
 	Tooltip:
 		Name: Crate
 	Crate:
-		Lifetime: 120
+		Lifetime: 240
 		TerrainTypes: Clear, Rough, Road, Tiberium, BlueTiberium, Beach
 	GiveCashCrateAction:
 		Amount: 1000
-		SelectionShares: 20
+		SelectionShares: 20000
 		UseCashTick: yes
 	RevealMapCrateAction:
-		SelectionShares: 1
+		SelectionShares: 1000
 		Effect: reveal-map
-	LevelUpCrateAction:
-		SelectionShares: 20
 	ExplodeCrateAction@fire:
 		Weapon: Napalm.Crate
-		SelectionShares: 5
+		SelectionShares: 5000
 	CloakCrateAction:
-		SelectionShares: 5
+		SelectionShares: 5000
 		InitialDelay: 15
-		CloakDelay: 125
-		CloakSound: appear1.aud
-		UncloakSound: appear1.aud
+		CloakDelay: 80
+		CloakSound: trans1.aud
+		UncloakSound: trans1.aud
 		Effect: cloak
 	GiveMcvCrateAction:
-		SelectionShares: 2
-		NoBaseSelectionShares: 9001
+		SelectionShares: 1
+		NoBaseSelectionShares: 9000001
 		Unit: mcv
 	RenderSimple:
 	BelowUnits:

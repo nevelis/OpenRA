@@ -4,14 +4,14 @@ Player:
 		Type: Building
 		BuildSpeed: .4
 		LowPowerSlowdown: 3
-		QueuedAudio: abldgin1.aud
-		ReadyAudio: conscmp1.aud
+		QueuedAudio: Building
+		ReadyAudio: ConstructionComplete
 	ClassicProductionQueue@Defense:
 		Type: Defense
 		BuildSpeed: .4
 		LowPowerSlowdown: 3
-		QueuedAudio: abldgin1.aud
-		ReadyAudio: conscmp1.aud
+		QueuedAudio: Building
+		ReadyAudio: ConstructionComplete
 	ClassicProductionQueue@Vehicle:
 		Type: Vehicle
 		BuildSpeed: .4
@@ -39,6 +39,28 @@ Player:
 	DeveloperMode:
 	HackyAI@EasyAI:
 		Name:Easy AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: powr,apwr
+			Barracks: barr,tent
+			VehiclesFactory: weap
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			barr: 2
+			tent: 2
+			dome: 1
+			weap: 2
+			spen: 1
+			syrd: 1
+			hpad: 4
+			afld: 4
+			atek: 1
+			stek: 1
+			fix: 1
 		BuildingFractions:
 			proc: 30%
 			powr: 35%
@@ -67,24 +89,52 @@ Player:
 			2tnk: 25%
 			3tnk: 50%
 		SquadSize: 20
-	HackyAI@HardAI:
-		Name:Hard AI
+	HackyAI@NormalAI:
+		Name:Normal AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: powr,apwr
+			Barracks: barr,tent
+			VehiclesFactory: weap
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			barr: 2
+			tent: 2
+			dome: 1
+			weap: 2
+			spen: 1
+			syrd: 1
+			hpad: 4
+			afld: 4
+			atek: 1
+			stek: 1
+			fix: 1
 		BuildingFractions:
-			proc: 30%
-			powr: 35%
+			proc: 10%
+			powr: 1%
+			apwr: 30%
 			tent: 1%
 			barr: 1%
-			weap: 1%
+			dome: 1%
+			weap: 6%
+			hpad: 4%
+			spen: 1%
+			syrd: 1%
+			afld: 4%
 			pbox.e1: 7%
 			gun: 7%
 			ftur: 10%
 			tsla: 5%
-			fix: 0.1%
-			dome: 10%
+			fix: 1%
 			agun: 5%
 			sam: 1%
 			atek: 1%
 			stek: 1%
+			mslo: 1%
 		UnitsToBuild:
 			e1: 50%
 			e3: 10%
@@ -95,9 +145,178 @@ Player:
 			1tnk: 70%
 			2tnk: 25%
 			3tnk: 50%
+			heli: 30%
+			hind: 30%
+			mig: 30%
+			yak: 30%
+			ss: 10%
+			msub: 10%
+			dd: 10%
+			ca: 10%
+			pt: 10%
+		SquadSize: 40
+	HackyAI@HardAI:
+		Name:Hard AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: powr,apwr
+			Barracks: barr,tent
+			VehiclesFactory: weap
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			barr: 2
+			tent: 2
+			dome: 1
+			weap: 2
+			spen: 1
+			syrd: 1
+			hpad: 4
+			afld: 4
+			atek: 1
+			stek: 1
+			fix: 1
+		BuildingFractions:
+			proc: 30%
+			powr: 1%
+			apwr: 30%
+			tent: 1%
+			barr: 1%
+			weap: 3%
+			hpad: 2%
+			spen: 1%
+			syrd: 1%
+			pbox.e1: 7%
+			gun: 7%
+			ftur: 10%
+			tsla: 5%
+			fix: 0.1%
+			dome: 10%
+			agun: 5%
+			sam: 1%
+			atek: 1%
+			stek: 1%
+			mslo: 1%
+		UnitsToBuild:
+			e1: 50%
+			e3: 10%
+			harv: 10%
+			apc: 30%
+			jeep: 40%
+			ftrk: 50%
+			1tnk: 70%
+			2tnk: 25%
+			3tnk: 50%
+			heli: 30%
+			hind: 30%
+			mig: 30%
+			yak: 30%
+			ss: 10%
+			msub: 10%
+			dd: 10%
+			ca: 10%
+			pt: 10%
+		SquadSize: 10
+	HackyAI@TestAI:
+		Name:Test AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: powr,apwr
+			Barracks: barr,tent
+			VehiclesFactory: weap
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			barr: 2
+			tent: 2
+			dome: 1
+			weap: 2
+			spen: 1
+			syrd: 1
+			hpad: 4
+			afld: 4
+			atek: 1
+			stek: 1
+			fix: 1
+		BuildingFractions:
+			proc: 29%
+			powr: 1%
+			apwr: 24%
+			tent: 3%
+			barr: 3%
+			dome: 1%
+			weap: 5%
+			hpad: 5%
+			afld: 5%
+			fix: 1%
+			atek: 1%
+			stek: 1%
+			spen: 1%
+			syrd: 1%
+			pbox.e1: 12%
+			gun: 12%
+			ftur: 12%
+			tsla: 12%
+			agun: 5%
+			sam: 5%
+			mslo: 1%
+		UnitsToBuild:
+			e1: 4%
+			e2: 4%
+			e3: 8%
+			e4: 4%
+			shok: 3%
+			harv: 1%
+			apc: 3%
+			jeep: 5%
+			ftrk: 8%
+			1tnk: 9%
+			2tnk: 20%
+			3tnk: 10%
+			4tnk: 14%
+			ttnk: 8%
+			arty: 15%
+			v2rl: 10%
+			heli: 7%
+			hind: 7%
+			mig: 10%
+			yak: 1%
+			ss: 7%
+			msub: 5%
+			dd: 8%
+			ca: 8%
+			pt: 8%
 		SquadSize: 10
 	HackyAI@OptiAI:
 		Name:Eisenhower AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: powr,apwr
+			Barracks: barr,tent
+			VehiclesFactory: weap	
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			barr: 2
+			tent: 2
+			dome: 1
+			weap: 2
+			spen: 1
+			syrd: 1
+			hpad: 4
+			afld: 4
+			atek: 1
+			stek: 1
+			fix: 1
 		BuildingFractions:
 			proc: 25.1%
 			powr: 35%
@@ -126,6 +345,28 @@ Player:
 		SquadSize: 10
 	HackyAI@ZhukovAI:
 		Name:Zhukov AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: powr,apwr
+			Barracks: barr,tent
+			VehiclesFactory: weap
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			barr: 2
+			tent: 2
+			dome: 1
+			weap: 2
+			spen: 1
+			syrd: 1
+			hpad: 4
+			afld: 4
+			atek: 1
+			stek: 1
+			fix: 1
 		BuildingFractions:
 			proc: 20%
 			powr: 35%
@@ -156,6 +397,28 @@ Player:
 		SquadSize: 25
 	HackyAI@RommelAI:
 		Name:Rommel AI
+		BuildingCommonNames:
+			ConstructionYard: fact
+			Refinery: proc
+			Power: powr,apwr
+			Barracks: barr,tent
+			VehiclesFactory: weap
+			Silo: silo
+		UnitsCommonNames:
+			Mcv: mcv
+		BuildingLimits:
+			proc: 4
+			barr: 2
+			tent: 2
+			dome: 1
+			weap: 2
+			spen: 1
+			syrd: 1
+			hpad: 4
+			afld: 4
+			atek: 1
+			stek: 1
+			fix: 1
 		BuildingFractions:
 			proc: 30%
 			powr: 35%
@@ -182,15 +445,17 @@ Player:
 			harv: 10%
 		SquadSize: 7
 	PlayerColorPalette:
-		BasePalette: terrain
+		BasePalette: player
 		RemapIndex: 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95
 	DebugResourceCash:
 	DebugResourceOre:
 	DebugResourceOreCapacity:
 	GpsWatcher:
+	Shroud:
 	BaseAttackNotifier:
+	PlayerStatistics:
 
-World:	
+World:
 	OpenWidgetAtGameStart:
 		Widget: INGAME_ROOT
 		ObserverWidget: OBSERVER_ROOT
@@ -202,15 +467,18 @@ World:
 	BuildingInfluence:
 	ChooseBuildTabOnSelect:
 	BridgeLayer:
-		Bridges: bridge1, bridge2, br1, br2, br3
+		Bridges: bridge1, bridge2, br1, br2, br3, sbridge1, sbridge2, sbridge3, sbridge4
 	CrateDrop:
 		Minimum: 1
 		Maximum: 3
 		SpawnInterval: 120
 		WaterChance: .2
+	PlayerPaletteFromCurrentTileset:
+		Name: player
+		ShadowIndex: 4
 	PaletteFromCurrentTileset:
 		Name: terrain
-		ShadowIndex: 4
+		ShadowIndex: 3,4
 	PaletteFromFile@chrome:
 		Name: chrome
 		Filename: temperat.pal
@@ -219,6 +487,11 @@ World:
 		Name: effect
 		Filename: temperat.pal
 		ShadowIndex: 4
+	PaletteFromFile@colorpicker:
+		Name: colorpicker
+		Filename: temperat.pal
+		ShadowIndex: 4
+		AllowModifiers: false
 	PaletteFromRGBA@shadow:
 		Name: shadow
 		R: 0
@@ -249,11 +522,8 @@ World:
 		G: 0
 		B: 0
 		A: 180
-	ColorPickerPaletteModifier:
-	ShroudPalette@shroud:
-	ShroudPalette@fog:
-		IsFog: yes
-		Name: fog
+	ShroudPalette:
+	FogPalette:
 	Country@0:
 		Name: Allies
 		Race: allies
@@ -265,22 +535,24 @@ World:
 	ResourceClaimLayer:
 	ResourceType@ore:
 		ResourceType: 1
-		Palette: terrain
+		Palette: player
 		SpriteNames: gold01,gold02,gold03,gold04
 		ValuePerUnit: 25
 		Name: Ore
 		PipColor: Yellow
 		AllowedTerrainTypes: Clear,Road
 		AllowUnderActors: false
+		TerrainType: Ore
 	ResourceType@gem:
 		ResourceType: 2
-		Palette: terrain
+		Palette: player
 		SpriteNames: gem01,gem02,gem03,gem04
 		ValuePerUnit: 50
 		Name: Gems
 		PipColor: Red
 		AllowedTerrainTypes: Clear,Road
 		AllowUnderActors: false
+		TerrainType: Gems
 	SmudgeLayer@SCORCH:
 		Type:Scorch
 		SmokePercentage:50
@@ -290,6 +562,7 @@ World:
 		Type:Crater
 		Types:cr1,cr2,cr3,cr4,cr5,cr6
 		Depths:5,5,5,5,5,5
+	DebugOverlay:
 	SpawnMapActors:
 	CreateMPPlayers:
 	MPStartLocations:
@@ -297,6 +570,7 @@ World:
 	SpatialBins:
 		BinSize: 4
 	Shroud:
+	Fog:
 	PathFinder:
 	ValidateOrder:
 
@@ -313,6 +587,7 @@ MINP:
 	InvisibleToEnemy:
 	Tooltip:
 		Name: Anti-Personnel Mine
+		Icon: jmin
 	ProximityCaptor:
 		Types:Mine
 
@@ -329,6 +604,7 @@ MINV:
 	InvisibleToEnemy:
 	Tooltip:
 		Name: Anti-Tank Mine
+		Icon: jmin
 	ProximityCaptor:
 		Types:Mine
 
@@ -350,12 +626,13 @@ CRATE:
 	ExplodeCrateAction@boom:
 		Weapon: CrateExplosion
 		SelectionShares: 5
-	ExplodeCrateAction@nuke:
-		Weapon: CrateNuke
-		SelectionShares: 5
 	HideMapCrateAction:
 		SelectionShares: 5
 		Effect: hide-map
+	HealUnitsCrateAction:
+		Notification: heal2.aud
+		SelectionShares: 2
+		Effect: heal
 	RevealMapCrateAction:
 		SelectionShares: 1
 		Effect: reveal-map

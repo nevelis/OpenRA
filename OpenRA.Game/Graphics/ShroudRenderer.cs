@@ -15,21 +15,25 @@ namespace OpenRA.Graphics
 {
 	public class ShroudRenderer
 	{
-		Traits.Shroud shroud;
+		World world;
+		Traits.Shroud shroud {
+			get {
+				return world.RenderedShroud;
+			}
+		}
+		
 		Sprite[] shadowBits = Game.modData.SpriteLoader.LoadAllSprites("shadow");
 		Sprite[,] sprites, fogSprites;
 
-		bool dirty = true;
 		Map map;
 
 		public ShroudRenderer(World world)
 		{
-			this.shroud = world.LocalShroud;
+			this.world = world;
 			this.map = world.Map;
 
 			sprites = new Sprite[map.MapSize.X, map.MapSize.Y];
 			fogSprites = new Sprite[map.MapSize.X, map.MapSize.Y];
-			shroud.Dirty += () => dirty = true;
 		}
 
 		static readonly byte[][] SpecialShroudTiles =
@@ -101,11 +105,20 @@ namespace OpenRA.Graphics
 			return shadowBits[SpecialShroudTiles[u ^ uSides][v]];
 		}
 
-		internal void Draw( WorldRenderer wr )
+		bool initializePalettes = true;
+		PaletteReference fogPalette, shroudPalette;
+		internal void Draw(WorldRenderer wr)
 		{
-			if (dirty)
+			if (initializePalettes)
 			{
-				dirty = false;
+				fogPalette = wr.Palette("fog");
+				shroudPalette = wr.Palette("shroud");
+				initializePalettes = false;
+			}
+
+			if (shroud != null && shroud.dirty)
+			{
+				shroud.dirty = false;
 				for (int i = map.Bounds.Left; i < map.Bounds.Right; i++)
 					for (int j = map.Bounds.Top; j < map.Bounds.Bottom; j++)
 						sprites[i, j] = ChooseShroud(i, j);
@@ -116,14 +129,13 @@ namespace OpenRA.Graphics
 			}
 
 			var clipRect = Game.viewport.WorldBounds(wr.world);
-			DrawShroud( wr, clipRect, fogSprites, "fog" );
-			DrawShroud( wr, clipRect, sprites, "shroud" );
+			DrawShroud(wr, clipRect, sprites, shroudPalette);
+			if (wr.world.WorldActor.HasTrait<Fog>())
+				DrawShroud(wr, clipRect, fogSprites, fogPalette);
 		}
 
-		void DrawShroud( WorldRenderer wr, Rectangle clip, Sprite[,] s, string pal )
+		void DrawShroud(WorldRenderer wr, Rectangle clip, Sprite[,] s, PaletteReference pal)
 		{
-			var shroudPalette = wr.GetPaletteIndex(pal);
-
 			for (var j = clip.Top; j < clip.Bottom; j++)
 			{
 				var starti = clip.Left;
@@ -138,14 +150,14 @@ namespace OpenRA.Graphics
 					{
 						s[starti, j].DrawAt(
 							Game.CellSize * new float2(starti, j),
-							shroudPalette,
+							pal.Index,
 							new float2(Game.CellSize * (i - starti), Game.CellSize));
 						starti = i + 1;
 					}
 
 					s[i, j].DrawAt(
 						Game.CellSize * new float2(i, j),
-						shroudPalette);
+						pal.Index);
 					starti = i + 1;
 					last = s[i, j];
 				}
@@ -153,7 +165,7 @@ namespace OpenRA.Graphics
 				if (starti < clip.Right)
 					s[starti, j].DrawAt(
 						Game.CellSize * new float2(starti, j),
-						shroudPalette,
+						pal.Index,
 						new float2(Game.CellSize * (clip.Right - starti), Game.CellSize));
 			}
 		}

@@ -26,6 +26,13 @@ using XTimer = System.Timers.Timer;
 
 namespace OpenRA.Server
 {
+	public enum ServerState : int
+	{
+	       WaitingPlayers = 1,
+	       GameStarted = 2,
+	       ShuttingDown = 3
+	}
+
 	public class Server
 	{
 		// Valid player connections
@@ -40,7 +47,7 @@ namespace OpenRA.Server
 
 		TypeDictionary ServerTraits = new TypeDictionary();
 		public Session lobbyInfo;
-		public bool GameStarted = false;
+
 		public readonly IPAddress Ip;
 		public readonly int Port;
 		int randomSeed;
@@ -51,16 +58,31 @@ namespace OpenRA.Server
 		public Map Map;
 		XTimer gameTimeout;
 
-		volatile bool shutdown = false;
+		protected volatile ServerState pState = new ServerState();
+		public ServerState State
+		{
+			get { return pState; }
+			protected set { pState = value; }
+		}
+
 		public void Shutdown()
 		{
-			shutdown = true;
+			State = ServerState.ShuttingDown;
+		}
+
+		public void EndGame()
+		{
+			foreach (var t in ServerTraits.WithInterface<IEndGame>())
+				t.GameEnded(this);
+			if (Settings.AllowUPnP)
+				RemovePortforward();
 		}
 
 		public Server(IPEndPoint endpoint, string[] mods, ServerSettings settings, ModData modData)
 		{
 			Log.AddChannel("server", "server.log");
 
+			pState = ServerState.WaitingPlayers;
 			listener = new TcpListener(endpoint);
 			listener.Start();
 			var localEndpoint = (IPEndPoint)listener.LocalEndpoint;
@@ -118,6 +140,7 @@ namespace OpenRA.Server
 			lobbyInfo.GlobalSettings.Map = settings.Map;
 			lobbyInfo.GlobalSettings.ServerName = settings.Name;
 			lobbyInfo.GlobalSettings.Ban = settings.Ban;
+			lobbyInfo.GlobalSettings.Dedicated = settings.Dedicated;
 
 			foreach (var t in ServerTraits.WithInterface<INotifyServerStart>())
 				t.ServerStarted(this);
@@ -139,10 +162,9 @@ namespace OpenRA.Server
 					foreach( var c in preConns ) checkRead.Add( c.socket );
 
 					Socket.Select( checkRead, null, null, timeout );
-					if (shutdown)
+					if (State == ServerState.ShuttingDown)
 					{
-						if (Settings.AllowUPnP)
-							RemovePortforward();
+						EndGame();
 						break;
 					}
 
@@ -158,15 +180,13 @@ namespace OpenRA.Server
 					foreach (var t in ServerTraits.WithInterface<ITick>())
 						t.Tick(this);
 
-					if (shutdown)
+					if (State == ServerState.ShuttingDown)
 					{
-						if (Settings.AllowUPnP)
-							RemovePortforward();
+						EndGame();
 						break;
 					}
 				}
 
-				GameStarted = false;
 				foreach (var t in ServerTraits.WithInterface<INotifyServerShutdown>())
 					t.ServerShutdown(this);
 
@@ -244,7 +264,7 @@ namespace OpenRA.Server
 		{
 			try
 			{
-				if (GameStarted)
+				if (State == ServerState.GameStarted)
 				{
 					Log.Write("server", "Rejected connection from {0}; game is already started.",
 						newConn.socket.RemoteEndPoint);
@@ -263,13 +283,24 @@ namespace OpenRA.Server
 							mods.Count() == Game.CurrentMods.Count() &&  //same number
 							mods.Select( m => Pair.New(m.Split('@')[0], m.Split('@')[1])).All(kv => Game.CurrentMods.ContainsKey(kv.First) &&
 					 		(kv.Second == "{DEV_VERSION}" || Game.CurrentMods[kv.First].Version == "{DEV_VERSION}" || kv.Second == Game.CurrentMods[kv.First].Version));
-
+				
 				if (!valid)
 				{
 					Log.Write("server", "Rejected connection from {0}; mods do not match.",
 						newConn.socket.RemoteEndPoint);
 
 					SendOrderTo(newConn, "ServerError", "Your mods don't match the server");
+					DropClient(newConn);
+					return;
+				}
+				
+				// Drop DEV_VERSION if it's a Dedicated
+				if ( lobbyInfo.GlobalSettings.Dedicated &&  mods.Any(m => m.Contains("{DEV_VERSION}")) )
+				{
+					Log.Write("server", "Rejected connection from {0}; DEV_VERSION is not allowed here.",
+						newConn.socket.RemoteEndPoint);
+
+					SendOrderTo(newConn, "ServerError", "DEV_VERSION is not allowed here");
 					DropClient(newConn);
 					return;
 				}
@@ -302,9 +333,11 @@ namespace OpenRA.Server
 
 				lobbyInfo.Clients.Add(client);
 				//Assume that first validated client is server admin
-				if(lobbyInfo.Clients.Count==1)
+				if(lobbyInfo.Clients.Where(c1 => c1.Bot == null).Count()==1)
 					client.IsAdmin=true;
 
+				OpenRA.Network.Session.Client clientAdmin = lobbyInfo.Clients.Where(c1 => c1.IsAdmin).Single();
+				
 				Log.Write("server", "Client {0}: Accepted connection from {1}",
 					newConn.PlayerIndex, newConn.socket.RemoteEndPoint);
 
@@ -313,6 +346,20 @@ namespace OpenRA.Server
 
 				SyncLobbyInfo();
 				SendChat(newConn, "has joined the game.");
+
+				if ( File.Exists("{0}motd_{1}.txt".F(Platform.SupportDir, lobbyInfo.GlobalSettings.Mods[0])) )
+				{
+					var motd = System.IO.File.ReadAllText("{0}motd_{1}.txt".F(Platform.SupportDir, lobbyInfo.GlobalSettings.Mods[0]));
+					SendChatTo(newConn, motd);
+				}
+
+				if ( lobbyInfo.GlobalSettings.Dedicated )
+				{
+					if (client.IsAdmin)
+						SendChatTo(newConn, "    You are admin now!");
+					else
+						SendChatTo(newConn, "    Current admin is {0}".F(clientAdmin.Name));
+				}
 
 				if (mods.Any(m => m.Contains("{DEV_VERSION}")))
 					SendChat(newConn, "is running a development version, "+
@@ -327,6 +374,8 @@ namespace OpenRA.Server
 				return;
 			if (pr.LockColor)
 				c.ColorRamp = pr.ColorRamp;
+			else
+				c.ColorRamp = c.PreferredColorRamp;
 			if (pr.LockRace)
 				c.Country = pr.Race;
 			if (pr.LockSpawn)
@@ -467,15 +516,29 @@ namespace OpenRA.Server
 			{
 				conns.Remove(toDrop);
 				SendChat(toDrop, "Connection Dropped");
-
-				if (GameStarted)
+				
+				OpenRA.Network.Session.Client dropClient = lobbyInfo.Clients.Where(c1 => c1.Index == toDrop.PlayerIndex).Single();
+				
+				if (State == ServerState.GameStarted)
 					SendDisconnected(toDrop); /* Report disconnection */
 
 				lobbyInfo.Clients.RemoveAll(c => c.Index == toDrop.PlayerIndex);
 
+				// reassign admin if necessary
+				if ( lobbyInfo.GlobalSettings.Dedicated && dropClient.IsAdmin && State == ServerState.WaitingPlayers)
+				{
+					if (lobbyInfo.Clients.Where(c1 => c1.Bot == null).Count() > 0)
+					{
+						// client was not alone on the server but he was admin: set admin to the last connected client
+						OpenRA.Network.Session.Client lastClient = lobbyInfo.Clients.Where(c1 => c1.Bot == null).Last();
+						lastClient.IsAdmin = true;
+						SendChat(toDrop, "Admin left! {0} is a new admin now!".F(lastClient.Name));
+					}
+				}
+				
 				DispatchOrders( toDrop, toDrop.MostRecentFrame, new byte[] { 0xbf } );
 
-				if (conns.Count != 0)
+				if (conns.Count != 0 || lobbyInfo.GlobalSettings.Dedicated)
 					SyncLobbyInfo();
 			}
 
@@ -488,7 +551,7 @@ namespace OpenRA.Server
 
 		public void SyncLobbyInfo()
 		{
-			if (!GameStarted)	/* don't do this while the game is running, it breaks things. */
+			if (State != ServerState.GameStarted)	/* don't do this while the game is running, it breaks things. */
 				DispatchOrders(null, 0,
 					new ServerOrder("SyncInfo", lobbyInfo.Serialize()).Serialize());
 
@@ -498,8 +561,9 @@ namespace OpenRA.Server
 
 		public void StartGame()
 		{
-			GameStarted = true;
+			State = ServerState.GameStarted;
 			listener.Stop();
+
 			Console.WriteLine("Game started");
 
 			foreach( var c in conns )

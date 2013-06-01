@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -80,6 +80,7 @@
     <Compile Include="ActorInitializer.cs" />
     <Compile Include="ActorMap.cs" />
     <Compile Include="ActorReference.cs" />
+    <Compile Include="Graphics\QuadRenderer.cs" />
     <Compile Include="PSubVec.cs" />
     <Compile Include="PSubPos.cs" />
     <Compile Include="PVecInt.cs" />
@@ -178,6 +179,7 @@
     <Compile Include="Traits\ValidateOrder.cs" />
     <Compile Include="Traits\Waypoint.cs" />
     <Compile Include="Traits\World\Country.cs" />
+    <Compile Include="Traits\World\Fog.cs" />
     <Compile Include="Traits\World\PlayerColorPalette.cs" />
     <Compile Include="Traits\World\ResourceLayer.cs" />
     <Compile Include="Traits\World\ResourceType.cs" />
@@ -195,6 +197,7 @@
     <Compile Include="Widgets\GridLayout.cs" />
     <Compile Include="Widgets\ImageWidget.cs" />
     <Compile Include="Widgets\LabelWidget.cs" />
+    <Compile Include="Widgets\LineGraphWidget.cs" />
     <Compile Include="Widgets\ListLayout.cs" />
     <Compile Include="Widgets\MapPreviewWidget.cs" />
     <Compile Include="Widgets\PasswordFieldWidget.cs" />

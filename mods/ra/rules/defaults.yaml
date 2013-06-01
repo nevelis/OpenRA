@@ -7,6 +7,7 @@
 			Rough: 40
 			Road: 100
 			Ore: 70
+			Gems: 70
 			Beach: 40
 		ROT: 5
 	SelectionDecorations:
@@ -32,6 +33,7 @@
 	GpsDot:
 		String:Vehicle
 	WithSmoke:
+	UpdatesPlayerStatistics:
 
 ^Tank:
 	AppearsOnRadar:
@@ -42,6 +44,7 @@
 			Rough: 70
 			Road: 100
 			Ore: 70
+			Gems: 70
 			Beach: 70
 		ROT: 5
 	SelectionDecorations:
@@ -67,6 +70,7 @@
 	GpsDot:
 		String:Vehicle
 	WithSmoke:
+	UpdatesPlayerStatistics:
 
 ^Infantry:
 	AppearsOnRadar:
@@ -84,6 +88,7 @@
 			Rough: 80
 			Road: 100
 			Ore: 80
+			Gems: 80
 			Beach: 80
 	SelectionDecorations:
 	Selectable:
@@ -111,6 +116,10 @@
 		Offset: 0,-10
 	CrushableInfantry:
 		CrushSound: squishy2.aud
+	RepairableNear:
+		Buildings: hosp
+		CloseEnough: 1
+	UpdatesPlayerStatistics:
 
 ^Ship:
 	AppearsOnRadar:
@@ -138,6 +147,7 @@
 	GpsDot:
 		String:Ship
 	WithSmoke:
+	UpdatesPlayerStatistics:
 
 ^Plane:
 	AppearsOnRadar:
@@ -166,6 +176,7 @@
 	GivesBounty:
 	GpsDot:
 		String:Plane
+	UpdatesPlayerStatistics:
 
 ^Helicopter:
 	Inherits: ^Plane
@@ -192,8 +203,9 @@
 	RenderBuilding:
 	WithBuildingExplosion:
 	RepairableBuilding:
+	EngineerRepairable:
 	EmitInfantryOnSell:
-		ActorTypes: e1,e1,e1,c1,c2,e6
+		ActorTypes: e1,e1,e1,e1,e1,e1,e1,e1,e1,e1,e1,e1,e1,e1,e1,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,e6,e6,e6,e6,e6
 	MustBeDestroyed:
 	GivesExperience:
 #	FrozenUnderFog:
@@ -207,6 +219,8 @@
 	Sellable:
 	AcceptsSupplies:
 	GivesBounty:
+	UpdatesPlayerStatistics:
+	C4Demolishable:
 
 ^Wall:
 	AppearsOnRadar:
@@ -234,14 +248,18 @@
 	GivesExperience:
 	EditorAppearance:
 		RelativeToTopLeft: yes
+		UseTerrainPalette: true
 	AutoTargetIgnore:
 	ProximityCaptor:
 		Types:Wall
 	Sellable:
+	UpdatesPlayerStatistics:
+	C4Demolishable:
 
-^CivBuilding:
+^TechBuilding:
 	Inherits: ^Building
 	-RepairableBuilding:
+	-EngineerRepairable:
 	Health:
 		HP: 400
 	Armor:
@@ -255,6 +273,36 @@
 	-Sellable:
 	-Capturable:
 	-CapturableBar:
+
+^CivInfantry:
+	Inherits: ^Infantry
+	Selectable:
+		Voice: CivilianMaleVoice
+		Bounds: 12,17,0,-9
+	Valued:
+		Cost: 70
+	Tooltip:
+		Name: Civilian
+	Health:
+		HP: 20
+	Mobile:
+		Speed: 4
+	RevealsShroud:
+		Range: 2
+	AttackFrontal:
+		PrimaryWeapon: Pistol
+	ProximityCaptor:
+		Types:CivilianInfantry
+	-RenderInfantry:
+	RenderInfantryPanic:
+	ScaredyCat:
+
+^CivBuilding:
+	Inherits: ^TechBuilding
+	RenderBuilding:
+		Palette: terrain
+	EditorAppearance:
+		UseTerrainPalette: true
 
 ^CivField:
 	Inherits: ^CivBuilding
@@ -278,8 +326,17 @@
 		Terrain: Tree
 	EditorAppearance:
 		RelativeToTopLeft: yes
+		UseTerrainPalette: true
 	ProximityCaptor:
 		Types:Tree
+	Health:
+		HP: 500
+	DeadBuildingState:
+	Armor:
+		Type: Wood
+	TargetableBuilding:
+		TargetTypes: Ground
+	AutoTargetIgnore:
 
 ^Husk:
 	Husk:
@@ -308,3 +365,72 @@
 	ProximityCaptor:
 		Types:Bridge
 	AutoTargetIgnore:
+
+#Temperate Terrain Expansion
+^SVBridge:
+	Tooltip:
+		Name: Small Bridge
+	BelowUnits:
+	TargetableBuilding:
+		TargetTypes: Ground, Water
+	Building:
+		Footprint: ___ ___
+		Dimensions: 3,2
+	Health:
+		HP: 750
+	ProximityCaptor:
+		Types:Bridge
+	AutoTargetIgnore:
+
+^SHBridge:
+	Tooltip:
+		Name: Small Bridge
+	BelowUnits:
+	TargetableBuilding:
+		TargetTypes: Ground, Water
+	Building:
+		Footprint: __ __ __
+		Dimensions: 2,3
+	Health:
+		HP: 750
+	ProximityCaptor:
+		Types:Bridge
+	AutoTargetIgnore:
+
+^STDBridge:
+	Tooltip:
+		Name: Small Bridge
+	BelowUnits:
+	TargetableBuilding:
+		TargetTypes: Ground, Water
+	Building:
+		Footprint: ____ ____
+		Dimensions: 4,2
+	Health:
+		HP: 750
+	ProximityCaptor:
+		Types:Bridge
+	AutoTargetIgnore:
+
+#Desert Terrain Expansion:
+^Rock:
+	Tooltip:
+		Name: Rock
+	RenderBuilding:
+		Palette: terrain
+	Building:
+		Footprint: __ x_
+		Dimensions: 2,2
+	AppearsOnRadar:
+	RadarColorFromTerrain:
+		Terrain: Tree
+	EditorAppearance:
+		RelativeToTopLeft: yes
+		UseTerrainPalette: true
+	ProximityCaptor:
+		Types:Tree
+
+^DesertCivBuilding:
+	Inherits: ^CivBuilding
+	RenderBuilding:
+		Palette: terrain

@@ -25,13 +25,14 @@ namespace OpenRA.Mods.RA
 
 	public enum UnitStance { HoldFire, ReturnFire, Defend, AttackAnything };
 
-	public class AutoTarget : INotifyIdle, INotifyDamage, ITick, IResolveOrder
+	public class AutoTarget : INotifyIdle, INotifyDamage, ITick, IResolveOrder, ISync
 	{
 		readonly AutoTargetInfo Info;
 		readonly AttackBase attack;
 
 		[Sync] int nextScanTime = 0;
-		[Sync] public UnitStance stance;
+		public UnitStance stance;
+		[Sync] public int stanceNumber { get { return (int)stance; } }
 		public UnitStance predictedStance;		/* NOT SYNCED: do not refer to this anywhere other than UI code */
 
 		public AutoTarget(Actor self, AutoTargetInfo info)
@@ -106,16 +107,25 @@ namespace OpenRA.Mods.RA
 		Actor ChooseTarget(Actor self, float range)
 		{
 			var info = self.Info.Traits.Get<AttackBaseInfo>();
-			nextScanTime = (int)(25 * (info.ScanTimeAverage +
-				(self.World.SharedRandom.NextDouble() * 2 - 1) * info.ScanTimeSpread));
+			nextScanTime = self.World.SharedRandom.Next(info.MinimumScanTimeInterval, info.MaximumScanTimeInterval);
 
 			var inRange = self.World.FindUnitsInCircle(self.CenterLocation, (int)(Game.CellSize * range));
 
-			return inRange
-				.Where(a => a.AppearsHostileTo(self))
-				.Where(a => !a.HasTrait<AutoTargetIgnore>())
-				.Where(a => attack.HasAnyValidWeapons(Target.FromActor(a)))
-				.ClosestTo( self.CenterLocation );
+			if (self.Owner.HasFogVisibility()) {
+				return inRange
+					.Where(a => a.AppearsHostileTo(self))
+					.Where(a => !a.HasTrait<AutoTargetIgnore>())
+					.Where(a => attack.HasAnyValidWeapons(Target.FromActor(a)))
+					.ClosestTo( self.CenterLocation );
+			}
+			else {
+				return inRange
+					.Where(a => a.AppearsHostileTo(self))
+					.Where(a => !a.HasTrait<AutoTargetIgnore>())
+					.Where(a => attack.HasAnyValidWeapons(Target.FromActor(a)))
+					.Where(a => self.Owner.Shroud.IsTargetable(a))
+					.ClosestTo( self.CenterLocation );
+			}
 		}
 	}
 

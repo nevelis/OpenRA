@@ -13,7 +13,10 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA
 {
-	class ChronoshiftableInfo : TraitInfo<Chronoshiftable> { }
+	class ChronoshiftableInfo : TraitInfo<Chronoshiftable>
+	{
+		public readonly bool ExplodeInstead = false;
+	}
 
 	public class Chronoshiftable : ITick, ISync
 	{
@@ -41,16 +44,25 @@ namespace OpenRA.Mods.RA
 		}
 
 		// Can't be used in synced code, except with ignoreVis.
-		public virtual bool CanChronoshiftTo(Actor self, CPos targetLocation, bool ignoreVis)
+		public virtual bool CanChronoshiftTo(Actor self, CPos targetLocation)
 		{
 			// Todo: Allow enemy units to be chronoshifted into bad terrain to kill them
-			return self.HasTrait<ITeleportable>() &&
-				self.Trait<ITeleportable>().CanEnterCell(targetLocation) &&
-				(ignoreVis || self.World.LocalShroud.IsExplored(targetLocation));
+			return (self.HasTrait<ITeleportable>() && self.Trait<ITeleportable>().CanEnterCell(targetLocation));
 		}
 
 		public virtual bool Teleport(Actor self, CPos targetLocation, int duration, bool killCargo, Actor chronosphere)
 		{
+			var info = self.Info.Traits.Get<ChronoshiftableInfo>();
+			if (info.ExplodeInstead)	// some things appear chronoshiftable, but instead they just die.
+			{
+				self.World.AddFrameEndTask(w =>
+				{
+					// damage is inflicted by the chronosphere
+					if (!self.Destroyed) self.InflictDamage(chronosphere, int.MaxValue, null); 
+				});
+				return true;
+			}
+
 			/// Set up return-to-sender info
 			chronoshiftOrigin = self.Location;
 			chronoshiftReturnTicks = duration;

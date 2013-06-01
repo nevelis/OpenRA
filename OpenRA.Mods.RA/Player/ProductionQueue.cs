@@ -21,25 +21,25 @@ namespace OpenRA.Mods.RA
 		public readonly string Type = null;
 		public readonly string Group = null;
 
-		public float BuildSpeed = 0.4f;
+		public float BuildSpeedModifier = 0.4f;
 		public readonly int LowPowerSlowdown = 3;
 
-		public readonly string ReadyAudio = "unitrdy1.aud";
-		public readonly string BlockedAudio = "nobuild1.aud";
-		public readonly string QueuedAudio = "train1.aud";
-		public readonly string OnHoldAudio = "onhold1.aud";
-		public readonly string CancelledAudio = "cancld1.aud";
+		public readonly string ReadyAudio = "UnitReady";
+		public readonly string BlockedAudio = "NoBuild";
+		public readonly string QueuedAudio = "Training";
+		public readonly string OnHoldAudio = "OnHold";
+		public readonly string CancelledAudio = "Cancelled";
 
 		public virtual object Create(ActorInitializer init) { return new ProductionQueue(init.self, init.self.Owner.PlayerActor, this); }
 	}
 
-	public class ProductionQueue : IResolveOrder, ITick, ITechTreeElement, INotifyCapture, INotifyKilled, INotifySold, ISync
+	public class ProductionQueue : IResolveOrder, ITick, ITechTreeElement, INotifyCapture, INotifyKilled, INotifySold, ISync, INotifyTransform
 	{
 		public readonly Actor self;
 		public ProductionQueueInfo Info;
 		PowerManager PlayerPower;
 		PlayerResources playerResources;
-		CountryInfo Race;
+		readonly CountryInfo Race;
 
 		// A list of things we are currently building
 		public List<ProductionItem> Queue = new List<ProductionItem>();
@@ -48,8 +48,8 @@ namespace OpenRA.Mods.RA
 		[Sync] public int CurrentRemainingCost { get { return QueueLength == 0 ? 0 : Queue[0].RemainingCost; } }
 		[Sync] public int CurrentRemainingTime { get { return QueueLength == 0 ? 0 : Queue[0].RemainingTime; } }
 		[Sync] public int CurrentSlowdown { get { return QueueLength == 0 ? 0 : Queue[0].slowdown; } }
-		[Sync] public bool CurrentPaused { get { return QueueLength == 0 ? false : Queue[0].Paused; } }
-		[Sync] public bool CurrentDone { get { return QueueLength == 0 ? false : Queue[0].Done; } }
+		[Sync] public bool CurrentPaused { get { return QueueLength != 0 && Queue[0].Paused; } }
+		[Sync] public bool CurrentDone { get { return QueueLength != 0 && Queue[0].Done; } }
 
 		// A list of things we could possibly build, even if our race doesn't normally get it
 		public Dictionary<ActorInfo, ProductionState> Produceable;
@@ -94,6 +94,7 @@ namespace OpenRA.Mods.RA
 		public void Killed(Actor killed, AttackInfo e) { if (killed == self) ClearQueue(); }
 		public void Selling(Actor self) {}
 		public void Sold(Actor self) { ClearQueue(); }
+		public void OnTransform(Actor self) { ClearQueue(); }
 
 		Dictionary<ActorInfo, ProductionState> InitTech(Actor playerActor)
 		{
@@ -105,9 +106,9 @@ namespace OpenRA.Mods.RA
 				var bi = a.Traits.Get<BuildableInfo>();
 				// Can our race build this by satisfying normal prereqs?
 				var buildable = bi.Owner.Contains(Race.Race);
-				tech.Add(a, new ProductionState() { Visible = buildable && !bi.Hidden });
+				tech.Add(a, new ProductionState { Visible = buildable && !bi.Hidden });
 				if (buildable)
-					ttc.Add(a.Name, a.Traits.Get<BuildableInfo>().Prerequisites.ToList(), this);
+					ttc.Add(a.Name, bi, this);
 			}
 
 			return tech;
@@ -174,7 +175,7 @@ namespace OpenRA.Mods.RA
 
 		public virtual void Tick(Actor self)
 		{
-			while (Queue.Count > 0 && !BuildableItems().Any(b => b.Name == Queue[ 0 ].Item))
+			while (Queue.Count > 0 && BuildableItems().All(b => b.Name != Queue[ 0 ].Item))
 			{
 				playerResources.GiveCash(Queue[0].TotalCost - Queue[0].RemainingCost); // refund what's been paid so far.
 				FinishProduction();
@@ -197,13 +198,25 @@ namespace OpenRA.Mods.RA
 					var cost = unit.Traits.Contains<ValuedInfo>() ? unit.Traits.Get<ValuedInfo>().Cost : 0;
 					var time = GetBuildTime(order.TargetString);
 
-					if (!BuildableItems().Any(b => b.Name == order.TargetString))
+					if (BuildableItems().All(b => b.Name != order.TargetString))
 						return;	/* you can't build that!! */
+
+					// Check if the player is trying to build more units that they are allowed
+					if (bi.BuildLimit > 0)
+					{
+						var inQueue = Queue.Count(pi => pi.Item == order.TargetString);
+						var owned = self.Owner.World.ActorsWithTrait<Buildable>().Count(a => a.Actor.Info.Name == order.TargetString && a.Actor.Owner == self.Owner);
+						if (inQueue + owned >= bi.BuildLimit)
+						{
+							Sound.PlayNotification(self.Owner, "Speech", Info.BlockedAudio, self.Owner.Country.Race);
+							return;
+						}
+					}
 
 					for (var n = 0; n < order.TargetLocation.X; n++)	// repeat count
 					{
 						bool hasPlayedSound = false;
-						BeginProduction(new ProductionItem(this, order.TargetString, (int)time, cost, PlayerPower,
+						BeginProduction(new ProductionItem(this, order.TargetString, time, cost, PlayerPower,
 								() => self.World.AddFrameEndTask(
 									_ =>
 									{
@@ -211,17 +224,15 @@ namespace OpenRA.Mods.RA
 
 										if (isBuilding && !hasPlayedSound)
 										{
-											Sound.PlayToPlayer(order.Player, Info.ReadyAudio);
-											hasPlayedSound = true;
+											hasPlayedSound = Sound.PlayNotification(self.Owner, "Speech", Info.ReadyAudio, self.Owner.Country.Race);
 										}
 										else if (!isBuilding)
 										{
 											if (BuildUnit(order.TargetString))
-												Sound.PlayToPlayer(order.Player, Info.ReadyAudio);
+												Sound.PlayNotification(self.Owner, "Speech", Info.ReadyAudio, self.Owner.Country.Race);
 											else if (!hasPlayedSound && time > 0)
 											{
-												Sound.PlayToPlayer(order.Player, Info.BlockedAudio);
-												hasPlayedSound = true;
+												hasPlayedSound = Sound.PlayNotification(self.Owner, "Speech", Info.BlockedAudio, self.Owner.Country.Race);
 											}
 										}
 									})));
@@ -242,21 +253,16 @@ namespace OpenRA.Mods.RA
 			}
 		}
 
-		public int GetBuildTime(String unitString)
+		virtual public int GetBuildTime(String unitString)
 		{
 			var unit = Rules.Info[unitString];
 			if (unit == null || ! unit.Traits.Contains<BuildableInfo>())
 				return 0;
 
-			if (self.World.LobbyInfo.GlobalSettings.AllowCheats && self.Owner.PlayerActor.Trait<DeveloperMode>().FastBuild) return 0;
-			var cost = unit.Traits.Contains<ValuedInfo>() ? unit.Traits.Get<ValuedInfo>().Cost : 0;
-			var time = cost
-				* Info.BuildSpeed
-				* (25 * 60) /* frames per min */				/* todo: build acceleration, if we do that */
-				 / 1000;
+			if (self.World.LobbyInfo.GlobalSettings.AllowCheats && self.Owner.PlayerActor.Trait<DeveloperMode>().FastBuild)
+				return 0;
 
-			if (unit.Traits.Contains<CustomBuildTimeValueInfo>())
-				time = unit.Traits.Get<CustomBuildTimeValueInfo>().Value * (1 / Info.BuildSpeed);
+			var time = unit.GetBuildTime() * Info.BuildSpeedModifier;
 
 			return (int) time;
 		}

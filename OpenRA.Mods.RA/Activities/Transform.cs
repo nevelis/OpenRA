@@ -34,6 +34,9 @@ namespace OpenRA.Mods.RA.Activities
 
 			self.World.AddFrameEndTask(w =>
 			{
+				foreach (var nt in self.TraitsImplementing<INotifyTransform>())
+					nt.OnTransform(self);
+
 				var selected = w.Selection.Contains(self);
 
 				self.Destroy();
@@ -64,6 +67,9 @@ namespace OpenRA.Mods.RA.Activities
 					init.Add( new CargoInit( cargo.Passengers.ToArray() ) );
 
 				var a = w.CreateActor( ToActor, init );
+
+				foreach (var nt in self.TraitsImplementing<INotifyTransformed>())
+					nt.OnTransformed(a);
 
 				if (selected)
 					w.Selection.Add(w, a);

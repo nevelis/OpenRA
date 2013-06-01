@@ -9,6 +9,7 @@
 #endregion
 
 using OpenRA.Mods.RA.Activities;
+using OpenRA.Mods.RA.Buildings;
 using OpenRA.Mods.RA.Render;
 using OpenRA.Traits;
 
@@ -21,28 +22,26 @@ namespace OpenRA.Mods.RA
 
 	public class Sellable : IResolveOrder
 	{
-		[Sync] public bool Selling = false;
-
 		public void ResolveOrder(Actor self, Order order)
 		{
-			if (order.OrderString == "Sell" && !Selling)
-			{
-				var capturing = self.TraitOrDefault<Capturable>();
-				if (capturing != null && capturing.CaptureInProgress)
-					return;
+			if (order.OrderString == "Sell")
+				Sell(self);
+		}
 
-				Selling = true;
+		public void Sell(Actor self)
+		{
+			if (!self.Trait<Building>().Lock())
+				return;
 
-				foreach( var ns in self.TraitsImplementing<INotifySold>() )
-					ns.Selling( self );
+			foreach (var ns in self.TraitsImplementing<INotifySold>())
+				ns.Selling(self);
 
-				self.CancelActivity();
+			self.CancelActivity();
 
-				var rb = self.TraitOrDefault<RenderBuilding>();
-				if (rb != null && self.Info.Traits.Get<RenderBuildingInfo>().HasMakeAnimation)
-					self.QueueActivity(new MakeAnimation(self, true, () => rb.PlayCustomAnim(self, "make")));
-				self.QueueActivity(new Sell());
-			}
+			var rb = self.TraitOrDefault<RenderBuilding>();
+			if (rb != null && self.Info.Traits.Get<RenderBuildingInfo>().HasMakeAnimation)
+				self.QueueActivity(new MakeAnimation(self, true, () => rb.PlayCustomAnim(self, "make")));
+			self.QueueActivity(new Sell());
 		}
 	}
 }

@@ -30,7 +30,7 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 		string MapUid;
 		Map Map;
 
-		ColorPickerPaletteModifier PlayerPalettePreview;
+		ColorPreviewManagerWidget colorPreview;
 
 		readonly Action OnGameStart;
 		readonly Action onExit;
@@ -96,8 +96,6 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 			Game.ConnectionStateChanged += ConnectionStateChanged;
 
 			UpdateCurrentMap();
-			PlayerPalettePreview = world.WorldActor.Trait<ColorPickerPaletteModifier>();
-			PlayerPalettePreview.Ramp = Game.Settings.Player.ColorRamp;
 			Players = lobby.Get<ScrollPanelWidget>("PLAYERS");
 			EditablePlayerTemplate = Players.Get("TEMPLATE_EDITABLE_PLAYER");
 			NonEditablePlayerTemplate = Players.Get("TEMPLATE_NONEDITABLE_PLAYER");
@@ -105,12 +103,15 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 			EditableSpectatorTemplate = Players.Get("TEMPLATE_EDITABLE_SPECTATOR");
 			NonEditableSpectatorTemplate = Players.Get("TEMPLATE_NONEDITABLE_SPECTATOR");
 			NewSpectatorTemplate = Players.Get("TEMPLATE_NEW_SPECTATOR");
+			colorPreview = lobby.Get<ColorPreviewManagerWidget>("COLOR_MANAGER");
+			colorPreview.Ramp = Game.Settings.Player.ColorRamp;
 
 			var mapPreview = lobby.Get<MapPreviewWidget>("MAP_PREVIEW");
 			mapPreview.IsVisible = () => Map != null;
 			mapPreview.Map = () => Map;
 			mapPreview.OnMouseDown = mi => LobbyUtils.SelectSpawnPoint( orderManager, mapPreview, Map, mi );
-			mapPreview.SpawnColors = () => LobbyUtils.GetSpawnColors( orderManager, Map );
+			mapPreview.OnTooltip = (spawnPoint, pos) => LobbyUtils.ShowSpawnPointTooltip(orderManager, spawnPoint, pos);
+			mapPreview.SpawnColors = () => LobbyUtils.GetSpawnColors(orderManager, Map);
 
 			var mapTitle = lobby.GetOrNull<LabelWidget>("MAP_TITLE");
 			if (mapTitle != null)
@@ -123,6 +124,8 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 				.Where(c => c.Selectable)
 				.ToDictionary(a => a.Race, a => a.Name);
 			CountryNames.Add("random", "Any");
+
+			var gameStarting = false;
 
 			var mapButton = lobby.Get<ButtonWidget>("CHANGEMAP_BUTTON");
 			mapButton.OnClick = () =>
@@ -143,10 +146,46 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 			};
 			mapButton.IsVisible = () => mapButton.Visible && Game.IsHost;
 
+			var randomMapButton = lobby.GetOrNull<ButtonWidget>("RANDOMMAP_BUTTON");
+			if (randomMapButton != null && Game.modData.AvailableMaps.Any())
+			{
+				randomMapButton.OnClick = () =>
+				{
+					var mapUid = Game.modData.AvailableMaps.Random(Game.CosmeticRandom).Key;
+					orderManager.IssueOrder(Order.Command("map " + mapUid));
+					Game.Settings.Server.Map = mapUid;
+					Game.Settings.Save();
+				};
+				randomMapButton.IsVisible = () => mapButton.Visible && Game.IsHost;
+			}
+
+			var assignTeams = lobby.GetOrNull<DropDownButtonWidget>("ASSIGNTEAMS_DROPDOWNBUTTON");
+			if (assignTeams != null)
+			{
+				assignTeams.IsVisible = () => Game.IsHost;
+				assignTeams.IsDisabled = () => gameStarting || orderManager.LobbyInfo.Clients.Count(c => c.Slot != null) < 2
+					|| orderManager.LocalClient == null || orderManager.LocalClient.IsReady;
+
+				assignTeams.OnMouseDown = _ =>
+				{
+					var options = Enumerable.Range(2, orderManager.LobbyInfo.Clients.Count(c => c.Slot != null).Clamp(2, 8) - 1).Select(d => new DropDownOption
+					{
+						Title = "{0} Teams".F(d),
+						IsSelected = () => false,
+						OnClick = () => orderManager.IssueOrder(Order.Command("assignteams {0}".F(d.ToString())))
+					});
+					Func<DropDownOption, ScrollItemWidget, ScrollItemWidget> setupItem = (option, template) =>
+					{
+						var item = ScrollItemWidget.Setup(template, option.IsSelected, option.OnClick);
+						item.Get<LabelWidget>("LABEL").GetText = () => option.Title;
+						return item;
+					};
+					assignTeams.ShowDropDown("LABEL_DROPDOWN_TEMPLATE", options.Count() * 30, options, setupItem);
+				};
+			}
+
 			var disconnectButton = lobby.Get<ButtonWidget>("DISCONNECT_BUTTON");
 			disconnectButton.OnClick = () => { CloseWindow(); onExit(); };
-
-			var gameStarting = false;
 
 			var allowCheats = lobby.Get<CheckboxWidget>("ALLOWCHEATS_CHECKBOX");
 			allowCheats.IsChecked = () => orderManager.LobbyInfo.GlobalSettings.AllowCheats;
@@ -154,6 +193,40 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 				|| orderManager.LocalClient.IsReady;
 			allowCheats.OnClick = () =>	orderManager.IssueOrder(Order.Command(
 						"allowcheats {0}".F(!orderManager.LobbyInfo.GlobalSettings.AllowCheats)));
+
+			var crates = lobby.GetOrNull<CheckboxWidget>("CRATES_CHECKBOX");
+			if (crates != null)
+			{
+				crates.IsChecked = () => orderManager.LobbyInfo.GlobalSettings.Crates;
+				crates.IsDisabled = () => !Game.IsHost || gameStarting || orderManager.LocalClient == null
+					|| orderManager.LocalClient.IsReady; // maybe disable the checkbox if a map forcefully removes CrateDrop?
+				crates.OnClick = () => orderManager.IssueOrder(Order.Command(
+					"crates {0}".F(!orderManager.LobbyInfo.GlobalSettings.Crates)));
+			}
+
+			var difficulty = lobby.GetOrNull<DropDownButtonWidget>("DIFFICULTY_DROPDOWNBUTTON");
+			if (difficulty != null)
+			{
+				difficulty.IsVisible = () => Map != null && Map.Difficulties != null && Map.Difficulties.Any();
+				difficulty.IsDisabled = () => !Game.IsHost || gameStarting || orderManager.LocalClient == null || orderManager.LocalClient.IsReady;
+				difficulty.GetText = () => orderManager.LobbyInfo.GlobalSettings.Difficulty;
+				difficulty.OnMouseDown = _ =>
+				{
+					var options = Map.Difficulties.Select(d => new DropDownOption
+					{
+						Title = d,
+						IsSelected = () => orderManager.LobbyInfo.GlobalSettings.Difficulty == d,
+						OnClick = () => orderManager.IssueOrder(Order.Command("difficulty {0}".F(d)))
+					});
+					Func<DropDownOption, ScrollItemWidget, ScrollItemWidget> setupItem = (option, template) =>
+					{
+						var item = ScrollItemWidget.Setup(template, option.IsSelected, option.OnClick);
+						item.Get<LabelWidget>("LABEL").GetText = () => option.Title;
+						return item;
+					};
+					difficulty.ShowDropDown("LABEL_DROPDOWN_TEMPLATE", options.Count() * 30, options, setupItem);
+				};
+			}
 
 			var startGameButton = lobby.Get<ButtonWidget>("START_GAME_BUTTON");
 			startGameButton.IsVisible = () => Game.IsHost;
@@ -316,7 +389,7 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 
 					var color = template.Get<DropDownButtonWidget>("COLOR");
 					color.IsDisabled = () => slot.LockColor || ready;
-					color.OnMouseDown = _ => LobbyUtils.ShowColorDropDown(color, client, orderManager, PlayerPalettePreview);
+					color.OnMouseDown = _ => LobbyUtils.ShowColorDropDown(color, client, orderManager, colorPreview);
 
 					var colorBlock = color.Get<ColorBlockWidget>("COLORBLOCK");
 					colorBlock.GetColor = () => client.ColorRamp.GetColor(0);
@@ -351,6 +424,8 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 				{	// Non-editable player in slot
 					template = NonEditablePlayerTemplate.Clone();
 					template.Get<LabelWidget>("NAME").GetText = () => client.Name;
+					if (client.IsAdmin)
+						template.Get<LabelWidget>("NAME").Font = "Bold";
 					var color = template.Get<ColorBlockWidget>("COLOR");
 					color.GetColor = () => client.ColorRamp.GetColor(0);
 
@@ -373,8 +448,6 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 					kickButton.OnClick = () => orderManager.IssueOrder(Order.Command("kick " + client.Index));
 				}
 
-				template.Get<ImageWidget>("ISADMIN").IsVisible = () => client != null && client.IsAdmin;
-
 				template.IsVisible = () => true;
 				Players.AddChild(template);
 			}
@@ -396,7 +469,7 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 
 					var color = template.Get<DropDownButtonWidget>("COLOR");
 					color.IsDisabled = () => ready;
-					color.OnMouseDown = _ => LobbyUtils.ShowColorDropDown(color, c, orderManager, PlayerPalettePreview);
+					color.OnMouseDown = _ => LobbyUtils.ShowColorDropDown(color, c, orderManager, colorPreview);
 
 					var colorBlock = color.Get<ColorBlockWidget>("COLORBLOCK");
 					colorBlock.GetColor = () => c.ColorRamp.GetColor(0);
@@ -410,6 +483,8 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 				{
 					template = NonEditableSpectatorTemplate.Clone();
 					template.Get<LabelWidget>("NAME").GetText = () => c.Name;
+					if (client.IsAdmin)
+						template.Get<LabelWidget>("NAME").Font = "Bold";
 					var color = template.Get<ColorBlockWidget>("COLOR");
 					color.GetColor = () => c.ColorRamp.GetColor(0);
 
@@ -420,8 +495,6 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 					kickButton.IsDisabled = () => orderManager.LocalClient.IsReady;
 					kickButton.OnClick = () => orderManager.IssueOrder(Order.Command("kick " + c.Index));
 				}
-
-				template.Get<ImageWidget>("ISADMIN").IsVisible = () => c.IsAdmin;
 
 				template.IsVisible = () => true;
 				Players.AddChild(template);
@@ -442,6 +515,13 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 		void CycleReady()
 		{
 			orderManager.IssueOrder(Order.Command("ready"));
+		}
+
+		class DropDownOption
+		{
+			public string Title;
+			public Func<bool> IsSelected;
+			public Action OnClick;
 		}
 	}
 }

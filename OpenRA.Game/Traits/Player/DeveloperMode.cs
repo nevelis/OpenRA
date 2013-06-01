@@ -73,11 +73,10 @@ namespace OpenRA.Traits
 						self.Trait<PlayerResources>().GiveCash(Info.Cash);
 						break;
 					}
-				case "DevShroud":
+				case "DevShroudDisable":
 					{
 						DisableShroud ^= true;
-						if (self.World.LocalPlayer == self.Owner)
-							self.World.LocalShroud.Disabled = DisableShroud;
+						self.Owner.Shroud.Disabled = DisableShroud;
 						break;
 					}
 				case "DevPathDebug":
@@ -87,8 +86,12 @@ namespace OpenRA.Traits
 					}
 				case "DevGiveExploration":
 					{
-						if (self.World.LocalPlayer == self.Owner)
-							self.World.WorldActor.Trait<Shroud>().ExploreAll(self.World);
+						self.Owner.Shroud.ExploreAll(self.World);
+						break;
+					}
+				case "DevResetExploration":
+					{
+						self.Owner.Shroud.ResetExploration();
 						break;
 					}
 				case "DevUnlimitedPower":

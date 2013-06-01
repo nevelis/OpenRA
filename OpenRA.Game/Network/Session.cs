@@ -42,7 +42,9 @@ namespace OpenRA.Network
 		public class Client
 		{
 			public int Index;
-			public ColorRamp ColorRamp;
+			public ColorRamp PreferredColorRamp; // Color that the client normally uses from settings.yaml.
+			public ColorRamp ColorRamp; // Actual color that the client is using.
+										// Usually the same as PreferredColorRamp but can be different on maps with locked colors.
 			public string Country;
 			public int SpawnPoint;
 			public string Name;
@@ -64,6 +66,7 @@ namespace OpenRA.Network
 			public bool LockColor;
 			public bool LockTeam;
 			public bool LockSpawn;
+			public bool Required;
 		}
 
 		public class Global
@@ -76,6 +79,9 @@ namespace OpenRA.Network
 			public int RandomSeed = 0;
 			public bool LockTeams = true;	// don't allow team changes after game start.
 			public bool AllowCheats = false;
+			public bool Dedicated;
+			public string Difficulty;
+			public bool Crates = true;
 		}
 
 		public Session(string[] mods)

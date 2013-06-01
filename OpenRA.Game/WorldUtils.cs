@@ -24,7 +24,7 @@ namespace OpenRA
 		public static IEnumerable<Actor> FindUnitsAtMouse(this World world, int2 mouseLocation)
 		{
 			var loc = Game.viewport.ViewToWorldPx(mouseLocation);
-			return FindUnits(world, loc, loc).Where(a => world.LocalShroud.IsVisible(a));
+			return FindUnits(world, loc, loc).Where(a => world.RenderedShroud.IsVisible(a));
 		}
 
 		public static IEnumerable<Actor> FindUnits(this World world, PPos a, PPos b)
@@ -58,13 +58,36 @@ namespace OpenRA
 
 		public static IEnumerable<CPos> FindTilesInCircle(this World world, CPos a, int r)
 		{
-			var min = world.ClampToWorld(a - new CVec(r, r));
-			var max = world.ClampToWorld(a + new CVec(r, r));
-			for (var j = min.Y; j <= max.Y; j++)
-				for (var i = min.X; i <= max.X; i++)
-					if (r * r >= (new CPos(i, j) - a).LengthSquared)
-						yield return new CPos(i, j);
+			if (r >= TilesByDistance.Length)
+				throw new InvalidOperationException("FindTilesInCircle supports queries for only <= {0}".F(MaxRange));
+
+			for(var i = 0; i <= r; i++)
+			{
+				foreach(var offset in TilesByDistance[i])
+				{
+					var t = offset + a;
+					if (world.Map.Bounds.Contains(t.X, t.Y))
+						yield return t;
+				}
+			}
 		}
+
+		static List<CVec>[] InitTilesByDistance(int max)
+		{
+			var ts = new List<CVec>[max+1];
+			for (var i = 0; i < max+1; i++)
+				ts[i] = new List<CVec>();
+
+			for (var j = -max; j <= max; j++)
+				for (var i = -max; i <= max; i++)
+					if (max * max >= i * i + j * j)
+						ts[(int)Math.Ceiling(Math.Sqrt(i*i + j*j))].Add(new CVec(i,j));
+
+			return ts;
+		}
+
+		const int MaxRange = 50;
+		static List<CVec>[] TilesByDistance = InitTilesByDistance(MaxRange);
 
 		public static string GetTerrainType(this World world, CPos cell)
 		{
@@ -104,7 +127,7 @@ namespace OpenRA
 
 		public static float Gauss1D(this Thirdparty.Random r, int samples)
 		{
-			return Exts.MakeArray(samples, _ => (float)r.NextDouble() * 2 - 1f)
+			return Exts.MakeArray(samples, _ => r.NextFloat() * 2 - 1f)
 				.Sum() / samples;
 		}
 

@@ -57,8 +57,9 @@ namespace OpenRA.Mods.RA.Effects
 
 			if (info.Inaccuracy > 0)
 			{
-				var factor = ((Args.dest - Args.src).Length / (float)Game.CellSize) / args.weapon.Range;
+				var factor = ((Args.dest - Args.src).ToCVec().Length) / args.weapon.Range;
 				Args.dest += (PVecInt) (info.Inaccuracy * factor * args.firedBy.World.SharedRandom.Gauss2D(2)).ToInt2();
+				Log.Write("debug", "Bullet with Inaccuracy; factor: #{0}; Projectile dest: {1}", factor, Args.dest);
 			}
 
 			if (Info.Image != null)
@@ -144,7 +145,7 @@ namespace OpenRA.Mods.RA.Effects
 
 		const float height = .1f;
 
-		public IEnumerable<Renderable> Render()
+		public IEnumerable<Renderable> Render(WorldRenderer wr)
 		{
 			if (anim != null)
 			{
@@ -153,20 +154,20 @@ namespace OpenRA.Mods.RA.Effects
 				var altitude = float2.Lerp(Args.srcAltitude, Args.destAltitude, at);
 				var pos = float2.Lerp(Args.src.ToFloat2(), Args.dest.ToFloat2(), at) - new float2(0, altitude);
 
-				if (Args.firedBy.World.LocalShroud.IsVisible(((PPos) pos.ToInt2()).ToCPos()))
+				if (Args.firedBy.World.RenderedShroud.IsVisible(((PPos) pos.ToInt2()).ToCPos()))
 				{
 					if (Info.High || Info.Angle > 0)
 					{
 						if (Info.Shadow)
-							yield return new Renderable(anim.Image, pos - .5f * anim.Image.size, "shadow", (int)pos.Y);
+							yield return new Renderable(anim.Image, pos - .5f * anim.Image.size, wr.Palette("shadow"), (int)pos.Y);
 
 						var highPos = pos - new float2(0, GetAltitude());
 
-						yield return new Renderable(anim.Image, highPos - .5f * anim.Image.size, "effect", (int)pos.Y);
+						yield return new Renderable(anim.Image, highPos - .5f * anim.Image.size, wr.Palette("effect"), (int)pos.Y);
 					}
 					else
 						yield return new Renderable(anim.Image, pos - .5f * anim.Image.size,
-							Args.weapon.Underwater ? "shadow" : "effect", (int)pos.Y);
+							wr.Palette(Args.weapon.Underwater ? "shadow" : "effect"), (int)pos.Y);
 				}
 			}
 

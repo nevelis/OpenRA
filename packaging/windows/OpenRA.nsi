@@ -83,6 +83,7 @@ Section "Client" Client
 	File "${SRCDIR}\OpenRA.Renderer.Cg.dll"
 	File "${SRCDIR}\OpenRA.Renderer.Null.dll"
 	File "${SRCDIR}\ICSharpCode.SharpZipLib.dll"
+	File "${SRCDIR}\FuzzyLogicLibrary.dll"
 	File "${SRCDIR}\COPYING"
 	File "${SRCDIR}\HACKING"
 	File "${SRCDIR}\INSTALL"
@@ -116,8 +117,6 @@ SectionEnd
 
 SectionGroup /e "Mods"
 	Section "Red Alert" RA
-		CreateDirectory "$TEMP\ra-packages"
-		CopyFiles /SILENT "$INSTDIR\mods\ra\packages\*.mix" "$TEMP\ra-packages"
 		RMDir /r "$INSTDIR\mods\ra"
 		SetOutPath "$INSTDIR\mods\ra"
 		File "${SRCDIR}\mods\ra\*.*"
@@ -127,13 +126,8 @@ SectionGroup /e "Mods"
 		File /r "${SRCDIR}\mods\ra\rules"
 		File /r "${SRCDIR}\mods\ra\tilesets"
 		File /r "${SRCDIR}\mods\ra\uibits"
-		CreateDirectory "$INSTDIR\mods\ra\packages"
-		CopyFiles /SILENT "$TEMP\ra-packages\*.mix" "$INSTDIR\mods\ra\packages"
-		RMDir /r "$TEMP\ra-packages"
 	SectionEnd
 	Section "Command & Conquer" CNC
-		CreateDirectory "$TEMP\cnc-packages"
-		CopyFiles /SILENT "$INSTDIR\mods\cnc\packages\*.mix" "$TEMP\cnc-packages"
 		RMDir /r "$INSTDIR\mods\cnc"
 		SetOutPath "$INSTDIR\mods\cnc"
 		File "${SRCDIR}\mods\cnc\*.*"
@@ -144,13 +138,8 @@ SectionGroup /e "Mods"
 		File /r "${SRCDIR}\mods\cnc\sequences"
 		File /r "${SRCDIR}\mods\cnc\tilesets"
 		File /r "${SRCDIR}\mods\cnc\uibits"
-		CreateDirectory "$INSTDIR\mods\cnc\packages"
-		CopyFiles /SILENT "$TEMP\cnc-packages\*.mix" "$INSTDIR\mods\cnc\packages"
-		RMDir /r "$TEMP\cnc-packages"
 	SectionEnd
 	Section "Dune 2000" D2K
-		CreateDirectory "$TEMP\d2k-packages"
-		CopyFiles /SILENT "$INSTDIR\mods\d2k\packages\*.mix" "$TEMP\d2k-packages"
 		RMDir /r "$INSTDIR\mods\d2k"
 		SetOutPath "$INSTDIR\mods\d2k"
 		File "${SRCDIR}\mods\d2k\*.*"
@@ -160,9 +149,6 @@ SectionGroup /e "Mods"
 		File /r "${SRCDIR}\mods\d2k\rules"
 		File /r "${SRCDIR}\mods\d2k\tilesets"
 		File /r "${SRCDIR}\mods\d2k\uibits"
-		CreateDirectory "$INSTDIR\mods\d2k\packages"
-		CopyFiles /SILENT "$TEMP\d2k-packages\*.mix" "$INSTDIR\mods\d2k\packages"
-		RMDir /r "$TEMP\d2k-packages"
 	SectionEnd
 SectionGroupEnd
 
@@ -275,6 +261,7 @@ Function ${UN}Clean
 	Delete $INSTDIR\OpenRA.Renderer.Null.dll
 	Delete $INSTDIR\OpenRA.Renderer.SdlCommon.dll
 	Delete $INSTDIR\ICSharpCode.SharpZipLib.dll
+	Delete $INSTDIR\FuzzyLogicLibrary.dll
 	Delete $INSTDIR\Tao.*.dll
 	Delete $INSTDIR\COPYING
 	Delete $INSTDIR\HACKING

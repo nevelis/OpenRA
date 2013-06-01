@@ -22,20 +22,20 @@ namespace OpenRA.Mods.RA.Air
 
 		PPos w1, w2, w3;	/* tangent points to turn circles */
 
-		public static Actor ChooseAirfield(Actor self)
+		public static Actor ChooseAirfield(Actor self, bool unreservedOnly)
 		{
 			var rearmBuildings = self.Info.Traits.Get<PlaneInfo>().RearmBuildings;
 			return self.World.ActorsWithTrait<Reservable>()
 				.Where(a => a.Actor.Owner == self.Owner)
 				.Where(a => rearmBuildings.Contains(a.Actor.Info.Name)
-					&& !Reservable.IsReserved(a.Actor))
+					&& (!unreservedOnly || !Reservable.IsReserved(a.Actor)))
 				.Select(a => a.Actor)
 				.ClosestTo( self.CenterLocation );
 		}
 
 		void Calculate(Actor self)
 		{
-			if (dest == null || Reservable.IsReserved(dest)) dest = ChooseAirfield(self);
+			if (dest == null || Reservable.IsReserved(dest)) dest = ChooseAirfield(self, true);
 
 			if (dest == null) return;
 
@@ -52,17 +52,21 @@ namespace OpenRA.Mods.RA.Air
 
 			var speed = .2f * aircraft.MovementSpeed;
 
-			var approachStart = landPos.ToFloat2() - new float2(aircraft.Altitude * speed, 0);
+			/* if the aircraft is on the ground, it will take off to the cruise altitude first before approaching */
+			var altitude = aircraft.Altitude;
+			if (altitude == 0) altitude = self.Info.Traits.Get<PlaneInfo>().CruiseAltitude;
+
+			var approachStart = landPos.ToInt2() - new float2(altitude * speed, 0);
 			var turnRadius = (128f / self.Info.Traits.Get<AircraftInfo>().ROT) * speed / (float)Math.PI;
 
 			/* work out the center points */
 			var fwd = -float2.FromAngle(aircraft.Facing / 128f * (float)Math.PI);
 			var side = new float2(-fwd.Y, fwd.X);		/* rotate */
 			var sideTowardBase = new[] { side, -side }
-				.OrderBy(a => float2.Dot(a, self.CenterLocation.ToFloat2() - approachStart))
+				.OrderBy(a => float2.Dot(a, self.CenterLocation.ToInt2() - approachStart))
 				.First();
 
-			var c1 = self.CenterLocation.ToFloat2() + turnRadius * sideTowardBase;
+			var c1 = self.CenterLocation.ToInt2() + turnRadius * sideTowardBase;
 			var c2 = approachStart + new float2(0, turnRadius * Math.Sign(self.CenterLocation.Y - approachStart.Y));	// above or below start point
 
 			/* work out tangent points */
@@ -94,14 +98,13 @@ namespace OpenRA.Mods.RA.Air
 				Calculate(self);
 			if (dest == null)
 			{
-				var rearmBuildings = self.Info.Traits.Get<PlaneInfo>().RearmBuildings;
-				var nearestAfld = self.World.ActorsWithTrait<Reservable>()
-					.Where(a => a.Actor.Owner == self.Owner && rearmBuildings.Contains(a.Actor.Info.Name))
-					.Select(a => a.Actor)
-					.ClosestTo(self.CenterLocation);
+				var nearestAfld = ChooseAirfield(self, false);
 				
 				self.CancelActivity();
-				return Util.SequenceActivities(Fly.ToCell(nearestAfld.Location), new FlyCircle());
+				if (nearestAfld != null)
+					return Util.SequenceActivities(Fly.ToCell(nearestAfld.Location), new FlyCircle());
+				else
+					return new FlyCircle();
 			}
 
 			return Util.SequenceActivities(

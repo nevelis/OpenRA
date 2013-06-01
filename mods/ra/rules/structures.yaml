@@ -4,21 +4,22 @@ MSLO:
 		Cost: 2500
 	Tooltip:
 		Name: Missile Silo
-		Description: Launches a devastating nuclear strike.\n  Strong vs Infantry, Buildings\n  Weak vs Tanks\n  Special Ability: Nuclear Missile
+		Description: Launches a devastating nuclear strike.\n  Strong vs Infantry, Buildings\n  Weak vs Tanks\n  Special Ability: Nuclear Missile\n\nMaximum 1 can be built
 		Icon: msloicon2
 	Buildable:
 		Queue: Defense
 		BuildPaletteOrder: 130
 		Prerequisites: techcenter
 		Owner: soviet,allies
+		BuildLimit: 1
 	Building:
 		Power: -100
 		Footprint: xx
 		Dimensions: 2,1
 	Health:
-		HP: 400
+		HP: 1000
 	Armor:
-		Type: Heavy
+		Type: Wood
 	RevealsShroud:
 		Range: 5
 	IronCurtainable:
@@ -196,7 +197,7 @@ IRON:
 		Footprint: xx xx
 		Dimensions: 2,2
 	Health:
-		HP: 400
+		HP: 1000
 	Armor:
 		Type: Wood
 	RevealsShroud:
@@ -207,8 +208,8 @@ IRON:
 		Image: infxicon
 		ChargeTime: 120
 		Description: Invulnerability
-		LongDesc: Makes a group of units invulnerable\nfor 10 seconds.
-		Duration: 10
+		LongDesc: Makes a group of units invulnerable\nfor 15 seconds.
+		Duration: 15
 		SelectTargetSound: slcttgt1.aud
 		BeginChargeSound: ironchg1.aud
 		EndChargeSound: ironrdy1.aud
@@ -234,7 +235,7 @@ PDOX:
 		Footprint: xx xx
 		Dimensions: 2,2
 	Health:
-		HP: 400
+		HP: 1000
 	Armor:
 		Type: Wood
 	RevealsShroud:
@@ -290,6 +291,7 @@ TSLA:
 	-RenderBuilding:
 	RenderRangeCircle:
 	-AcceptsSupplies:
+	DrawLineToTarget:
 
 AGUN:
 	Inherits: ^Building
@@ -302,7 +304,7 @@ AGUN:
 		Owner: allies
 		Hotkey: g
 	Valued:
-		Cost: 600
+		Cost: 800
 	Tooltip:
 		Name: AA Gun
 		Description: Anti-Air base defense.\n  Strong vs Aircraft\n  Weak vs Infantry, Tanks
@@ -330,6 +332,7 @@ AGUN:
 	RenderRangeCircle:
 		RangeCircleType: aa
 	-AcceptsSupplies:
+	DrawLineToTarget:
 
 DOME:
 	RequiresPower:
@@ -342,7 +345,7 @@ DOME:
 		Owner: allies,soviet
 		Hotkey: r
 	Valued:
-		Cost: 1400
+		Cost: 1600
 	Tooltip:
 		Name: Radar Dome
 		Description: Provides an overview of the battlefield.\n  Requires power to operate.
@@ -373,7 +376,7 @@ PBOX:
 	Health:
 		HP: 400
 	Armor:
-		Type: Wood
+		Type: Heavy
 	RevealsShroud:
 		Range: 6
 	IronCurtainable:
@@ -386,6 +389,7 @@ PBOX:
 		PipCount: 1
 	-EmitInfantryOnSell:
 #	EmitCargoOnSell:
+	DrawLineToTarget:
 	TransformOnPassenger@e1:
 		PassengerTypes: e1
 		OnEnter: pbox.e1
@@ -409,12 +413,17 @@ PBOX:
 	TransformOnPassenger@e7:
 		PassengerTypes: e7
 		OnEnter: pbox.e7
-		OnExit:	pbox
+		OnExit: pbox
 		SkipMakeAnims: true
 	TransformOnPassenger@SHOK:
 		PassengerTypes: shok
 		OnEnter: pbox.shok
-		OnExit:	pbox
+		OnExit: pbox
+		SkipMakeAnims: true
+	TransformOnPassenger@Sniper:
+		PassengerTypes: sniper
+		OnEnter: pbox.sniper
+		OnExit: pbox
 		SkipMakeAnims: true
 
 PBOX.E1:
@@ -495,6 +504,18 @@ PBOX.SHOK:
 		PrimaryWeapon: PortaTesla
 		PrimaryLocalOffset: 0,-11,0,0,0
 
+PBOX.SNIPER:
+	Inherits: PBOX
+	Tooltip:
+		Name: Pillbox (Sniper)
+	RenderBuilding:
+		Image: PBOX
+	RenderRangeCircle:
+	AutoTarget:
+	AttackTurreted:
+		PrimaryWeapon: Sniper
+		PrimaryLocalOffset: 0,-11,0,0,0
+
 HBOX:
 	Inherits: ^Building
 	Tooltip:
@@ -507,7 +528,7 @@ HBOX:
 	Health:
 		HP: 600
 	Armor:
-		Type: Wood
+		Type: Heavy
 	RevealsShroud:
 		Range: 6
 	Cloak:
@@ -525,6 +546,7 @@ HBOX:
 		PipCount: 1
 	-EmitInfantryOnSell:
 #	EmitCargoOnSell:
+	DrawLineToTarget:
 	TransformOnPassenger@e1:
 		PassengerTypes: e1
 		OnEnter: HBOX.e1
@@ -548,12 +570,17 @@ HBOX:
 	TransformOnPassenger@e7:
 		PassengerTypes: e7
 		OnEnter: HBOX.e7
-		OnExit:	HBOX
+		OnExit: HBOX
 		SkipMakeAnims: true
 	TransformOnPassenger@SHOK:
 		PassengerTypes: shok
 		OnEnter: HBOX.shok
-		OnExit:	HBOX
+		OnExit: HBOX
+		SkipMakeAnims: true
+	TransformOnPassenger@Sniper:
+		PassengerTypes: sniper
+		OnEnter: HBOX.sniper
+		OnExit: HBOX
 		SkipMakeAnims: true
 
 HBOX.E1:
@@ -632,7 +659,19 @@ HBOX.SHOK:
 	AutoTarget:
 	AttackTurreted:
 		PrimaryWeapon: PortaTesla
-		PrimaryLocalOffset: 0,-11,0,0,0		
+		PrimaryLocalOffset: 0,-11,0,0,0
+
+HBOX.SNIPER:
+	Inherits: HBOX
+	Tooltip:
+		Name: Camo Pillbox (Sniper)
+	RenderBuilding:
+		Image: HBOX
+	RenderRangeCircle:
+	AutoTarget:
+	AttackTurreted:
+		PrimaryWeapon: Sniper
+		PrimaryLocalOffset: 0,-11,0,0,0
 
 GUN:
 	Inherits: ^Building
@@ -667,6 +706,7 @@ GUN:
 	-RenderBuilding:
 	RenderRangeCircle:
 	-AcceptsSupplies:
+	DrawLineToTarget:
 
 FTUR:
 	Inherits: ^Building
@@ -700,6 +740,7 @@ FTUR:
 	IronCurtainable:
 	RenderRangeCircle:
 	-AcceptsSupplies:
+	DrawLineToTarget:
 
 SAM:
 	Inherits: ^Building
@@ -740,6 +781,7 @@ SAM:
 	RequiresPower:
 	CanPowerDown:
 	-AcceptsSupplies:
+	DrawLineToTarget:
 
 ATEK:
 	Inherits: ^Building
@@ -798,7 +840,7 @@ WEAP:
 	Health:
 		HP: 1500
 	Armor:
-		Type: Light
+		Type: Wood
 	RevealsShroud:
 		Range: 4
 	Bib:
@@ -820,10 +862,14 @@ FACT:
 		Power: 0
 		Footprint: xxx xxx xxx
 		Dimensions: 3,3
+	Buildable:
+		Queue: Building
+		BuildPaletteOrder: 1000
+		Owner: None
 	Health:
-		HP: 1000
+		HP: 1500
 	Armor:
-		Type: Heavy
+		Type: Wood
 	RevealsShroud:
 		Range: 5
 	Bib:
@@ -834,6 +880,7 @@ FACT:
 		Cost: 2500
 	Tooltip:
 		Name: Construction Yard
+		Description: Builds base structures.
 	CustomSellValue:
 		Value: 2500
 	BaseBuilding:
@@ -842,6 +889,7 @@ FACT:
 		Offset:1,1
 		Facing: 96
 	ProductionBar:
+	-Sellable:
 		
 PROC:
 	Inherits: ^Building
@@ -924,7 +972,7 @@ HPAD:
 		Owner: allies
 		Hotkey: i
 	Valued:
-		Cost: 300
+		Cost: 500
 	Tooltip:
 		Name: Helipad
 		Description: Produces and reloads helicopters
@@ -959,9 +1007,9 @@ AFLD:
 		Owner: soviet
 		Hotkey: g
 	Valued:
-		Cost: 300
+		Cost: 500
 	Tooltip:
-		Name: Airstrip
+		Name: Airfield
 		Description: Provides radar and off-map support\n  Special Ability: Paratroopers\n  Special Ability: Spy Plane
 	Building:
 		Power: -20
@@ -970,7 +1018,7 @@ AFLD:
 	Health:
 		HP: 1000
 	Armor:
-		Type: Heavy
+		Type: Wood
 	RevealsShroud:
 		Range: 7
 	Exit@1:
@@ -1157,6 +1205,23 @@ TENT:
 	PrimaryBuilding:
 	IronCurtainable:
 	ProductionBar:
+	
+KENN:
+	Inherits: ^Building
+	Tooltip:
+		Name: Kennel
+	Building:
+		Power: -10
+	-GivesBuildableArea:
+	Health:
+		HP: 300
+	Armor:
+		Type: Wood
+	RevealsShroud:
+		Range: 4
+	IronCurtainable:
+	-EmitInfantryOnSell:
+	-AcceptsSupplies:
 
 FIX:
 	Inherits: ^Building
@@ -1167,7 +1232,7 @@ FIX:
 		Owner: allies,soviet
 		Hotkey: d
 	Valued:
-		Cost: 1000
+		Cost: 1200
 	Tooltip:
 		Name: Service Depot
 		Description: Repairs vehicles, reloads minelayers, and \nallows the construction of additional bases.
@@ -1406,3 +1471,24 @@ WOOD:
 		HP: 100
 	Armor: 
 		Type: Wood
+
+# custom prerequisites:
+BARRACKS:
+	Tooltip:
+		Name: Infantry Production
+		Description: Infantry Production
+
+VEHICLEPRODUCTION:
+	Tooltip:
+		Name: Vehicle Production
+		Description: Vehicle Production
+
+TECHCENTER:
+	Tooltip:
+		Name: Tech Center
+		Description: Tech Center
+
+ANYPOWER:
+	Tooltip:
+		Name: Power Plant
+		Description: Power Plant

@@ -87,6 +87,8 @@ Container@PLAYER_WIDGETS:
 			TooltipContainer:TOOLTIP_CONTAINER
 			X:10
 			Y:10
+			ReadyText:Ready
+			HoldText:On Hold
 		Background@SIDEBAR_BACKGROUND:
 			X:WINDOW_RIGHT - 204
 			Y:30
@@ -150,27 +152,27 @@ Container@PLAYER_WIDGETS:
 							Width:PARENT_RIGHT-2
 							Height:PARENT_BOTTOM-2
 							WorldInteractionController:INTERACTION_CONTROLLER
-				Background@POWERBAR:
+				Background@POWERBAR_PANEL:
 					X:4
 					Y:5
 					Width:10
 					Height:168
 					Background:panel-black
 					Children:
-						PowerBar:
+						ResourceBar@POWERBAR:
 							X:1
 							Y:1
 							Width:PARENT_RIGHT-2
 							Height:PARENT_BOTTOM-2
 							TooltipContainer:TOOLTIP_CONTAINER
-				Background@SILOBAR:
+				Background@SILOBAR_PANEL:
 					X:180
 					Y:5
 					Width:10
 					Height:168
 					Background:panel-black
 					Children:
-						SiloBar:
+						ResourceBar@SILOBAR:
 							X:1
 							Y:1
 							Width:PARENT_RIGHT-2
@@ -257,6 +259,8 @@ Container@PLAYER_WIDGETS:
 			X:WINDOW_RIGHT - 204
 			Y:287
 			TooltipContainer:TOOLTIP_CONTAINER
+			ReadyText:Ready
+			HoldText:On Hold
 Background@FMVPLAYER:
 	Width:WINDOW_RIGHT
 	Height:WINDOW_BOTTOM

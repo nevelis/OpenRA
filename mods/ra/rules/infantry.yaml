@@ -5,6 +5,7 @@ DOG:
 		BuildPaletteOrder: 30
 		Prerequisites: barr
 		Owner: soviet
+		Hotkey: o
 	Valued:
 		Cost: 200
 	Tooltip:
@@ -33,6 +34,7 @@ E1:
 		Queue: Infantry
 		BuildPaletteOrder: 10
 		Owner: allies,soviet
+		Hotkey: i
 	Valued:
 		Cost: 100
 	Tooltip:
@@ -58,6 +60,7 @@ E2:
 		BuildPaletteOrder: 10
 		Owner: soviet
 		Prerequisites: barr
+		Hotkey: g
 	Valued:
 		Cost: 160
 	Tooltip:
@@ -87,6 +90,7 @@ E3:
 		Queue: Infantry
 		BuildPaletteOrder: 20
 		Owner: allies,soviet
+		Hotkey: r
 	Valued:
 		Cost: 300
 	Tooltip:
@@ -114,6 +118,7 @@ E4:
 		BuildPaletteOrder: 60
 		Prerequisites: ftur
 		Owner: soviet
+		Hotkey: t
 	Valued:
 		Cost: 300
 	Tooltip:
@@ -140,6 +145,7 @@ E6:
 		Queue: Infantry
 		BuildPaletteOrder: 50
 		Owner: soviet,allies
+		Hotkey: e
 	Valued:
 		Cost: 500
 	Tooltip:
@@ -171,6 +177,7 @@ SPY:
 		BuildPaletteOrder: 60
 		Prerequisites: dome, tent
 		Owner: allies
+		Hotkey: p
 	Valued:
 		Cost: 500
 	SpyToolTip:
@@ -189,6 +196,8 @@ SPY:
 		PipType: Yellow
 	TakeCover:
 	Spy:
+	Infiltrates:
+		InfiltrateTypes: Cash, SupportPower, Exploration
 	-AutoTarget:
 	AttackMove:
 		JustMove: true
@@ -205,11 +214,13 @@ E7:
 		BuildPaletteOrder: 110
 		Prerequisites: techcenter
 		Owner: allies
+		Hotkey: y
+		BuildLimit: 1
 	Valued:
 		Cost: 1200
 	Tooltip:
 		Name: Tanya
-		Description: Elite commando infantry, armed with \ndual pistols and C4.\n  Strong vs Infantry, Buildings\n  Weak vs Vehicles\n  Special Ability: Destroy Building with C4
+		Description: Elite commando infantry, armed with \ndual pistols and C4.\n  Strong vs Infantry, Buildings\n  Weak vs Vehicles\n  Special Ability: Destroy Building with C4\n\nMaximum 1 can be trained
 	Selectable:
 		Voice: TanyaVoice
 		Bounds: 12,17,0,-9
@@ -231,6 +242,47 @@ E7:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
 
+E8:
+	Inherits: ^Infantry
+	Buildable:
+		Queue: Infantry
+		BuildPaletteOrder: 110
+		Prerequisites: stek
+		Owner: soviet
+		Hotkey: v
+		BuildLimit: 1
+	Valued:
+		Cost: 1800
+	Tooltip:
+		Name: Volkov
+		Description: Elite commando cyborg, armed with \nmodular cannons and grenade launcher.\n  Strong vs Vehicles, Infantry\n  Weak vs Aircraft\n\nMaximum 1 can be trained
+	Selectable:
+		Voice: VolkovVoice
+		Bounds: 12,17,0,-9
+	Health:
+		HP: 200
+	Armor:
+		Type: Cybernetic
+	Mobile:
+		Speed: 5
+		Crushes: atmine, crate
+	RevealsShroud:
+		Range: 4
+	Passenger:
+		PipType: Red
+	AttackFrontal:
+		PrimaryWeapon: VolkAT
+		SecondaryWeapon: VolkNapalm
+	TakeCover:
+	-RenderInfantry:
+	RenderInfantryProne:
+		IdleAnimations: idle1
+	CrushableInfantry:
+		CrushSound: crunchy2.aud
+	RepairableNear:
+		Buildings: fix
+		CloseEnough: 1
+
 MEDI:
 	Inherits: ^Infantry
 	Buildable:
@@ -238,6 +290,7 @@ MEDI:
 		BuildPaletteOrder: 20
 		Owner: allies
 		Prerequisites: tent
+		Hotkey: m
 	Valued:
 		Cost: 300
 	Tooltip:
@@ -265,45 +318,40 @@ MEDI:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
 
-C1:
+MECH:
 	Inherits: ^Infantry
-	Selectable:
-		Voice: CivilianMaleVoice
-		Bounds: 12,17,0,-9
+	Buildable:
+		Queue: Infantry
+		BuildPaletteOrder: 70
+		Owner: allies
+		Prerequisites: fix
+		Hotkey: c
 	Valued:
-		Cost: 70
+		Cost: 800
 	Tooltip:
-		Name: Civilian
+		Name: Mechanic
+		Description: Repairs nearby vehicles.\n  Strong vs Nothing\n  Weak vs Everything
+	Selectable:
+		Voice: MechanicVoice
+		Bounds: 12,17,0,-9
 	Health:
-		HP: 20
+		HP: 80
 	Mobile:
 		Speed: 4
 	RevealsShroud:
-		Range: 2
-	AttackFrontal:
-		PrimaryWeapon: Pistol
-	ProximityCaptor:
-		Types:CivilianInfantry
-
-C2:
-	Inherits: ^Infantry
-	Selectable:
-		Voice: CivilianFemaleVoice
-		Bounds: 12,17,0,-9
-	Valued:
-		Cost: 70
-	Tooltip:
-		Name: Civilian
-	Health:
-		HP: 20
-	Mobile:
-		Speed: 4
-	RevealsShroud:
-		Range: 2
-	AttackFrontal:
-		PrimaryWeapon: Pistol
-	ProximityCaptor:
-		Types:CivilianInfantry
+		Range: 3
+	Passenger:
+		PipType: Yellow
+	AutoHeal:
+	AttackMedic:
+		PrimaryWeapon: Repair
+	TakeCover:
+	-AutoTarget:
+	AttackMove:
+		JustMove: true
+	-RenderInfantry:
+	RenderInfantryProne:
+		IdleAnimations: idle1,idle2
 
 EINSTEIN:
 	Inherits: ^Infantry
@@ -324,7 +372,69 @@ EINSTEIN:
 	AttackMove:
 		JustMove: true
 	ProximityCaptor:
-		Types:CivilianInfantry
+		Types: CivilianInfantry
+	-RenderInfantry:
+	RenderInfantryPanic:
+	ScaredyCat:
+
+DELPHI:
+	Inherits: ^Infantry
+	Selectable:
+		Voice: CivilianMaleVoice
+		Bounds: 12,17,0,-9
+	Valued:
+		Cost: 10
+	Tooltip:
+		Name: Agent Delphi
+	Health:
+		HP: 25
+	Mobile:
+		Speed: 5
+	RevealsShroud:
+		Range: 2
+	-AutoTarget:
+	AttackMove:
+		JustMove: true
+	ProximityCaptor:
+		Types: CivilianInfantry
+	-RenderInfantry:
+	RenderInfantryPanic:
+	ScaredyCat:
+
+CHAN:
+	Inherits: ^CivInfantry
+	Tooltip:
+		Name: Agent Chan
+
+GNRL:
+	Inherits: ^CivInfantry
+	Tooltip:
+		Name: General
+
+THF:
+	Inherits: ^Infantry
+	Valued:
+		Cost: 400
+	Tooltip:
+		Name: Thief
+		Description: Steals enemy credits.\n  Strong vs Nothing\n  Weak vs Everything\n
+	Selectable:
+		Voice: ThiefVoice
+		Bounds: 12,17,0,-9
+	Health:
+		HP: 25
+	Mobile:
+		Speed: 4
+	RevealsShroud:
+		Range: 5
+	Passenger:
+		PipType: Yellow
+	Infiltrates:
+		InfiltrateTypes: Cash
+	TakeCover:
+	-AutoTarget:
+	AttackMove:
+		JustMove: true
 
 SHOK:
 	Inherits: ^Infantry
@@ -332,6 +442,7 @@ SHOK:
 		Queue: Infantry
 		Prerequisites: stek,tsla
 		Owner: soviet
+		Hotkey: l
 	Valued:
 		Cost: 500
 	Tooltip:
@@ -354,3 +465,45 @@ SHOK:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
 	-CrushableInfantry:
+
+SNIPER:
+	Inherits: ^Infantry
+	Valued:
+		Cost: 700
+	Tooltip:
+		Icon: snipericon
+		Name: Sniper
+		Description: Elite sniper infantry unit.\n  Strong vs Infantry\n  Weak vs Vehicles
+	Buildable:
+		Queue: Infantry
+		BuildPaletteOrder: 50
+		Owner: soviet
+		Prerequisites: dome
+		Hotkey: n
+	Selectable:
+		Bounds: 12,17,0,-6
+	Mobile:
+		Speed: 4
+	Health:
+		HP: 200
+	Passenger:
+		PipType: Red
+	RevealsShroud:
+		Range: 6
+	AutoTarget:
+		InitialStance: HoldFire
+	AttackFrontal:
+		PrimaryWeapon: Sniper
+	TakeCover:
+	-RenderInfantry:
+	RenderInfantryProne:
+		IdleAnimations: idle1,idle2
+	Cloak:
+		InitialDelay: 250
+		CloakDelay: 120
+		CloakSound:
+		UncloakSound:
+		UncloakOnMove: yes
+	Captures:
+		CaptureTypes: civilianbuilding
+		AllowAllies: true

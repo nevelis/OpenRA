@@ -10,6 +10,7 @@
 
 using System.Collections.Generic;
 using System.Drawing;
+using OpenRA.Graphics;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA
@@ -18,7 +19,7 @@ namespace OpenRA.Mods.RA
 
 	class InvisibleToEnemy : IRenderModifier, IVisibilityModifier, IRadarColorModifier
 	{
-		public bool IsVisible(Actor self)
+		public bool IsVisible(Shroud s, Actor self)
 		{
 			return self.World.LocalPlayer == null ||
 				self.Owner.Stances[self.World.LocalPlayer] == Stance.Ally;
@@ -32,9 +33,9 @@ namespace OpenRA.Mods.RA
 
 		static readonly Renderable[] Nothing = { };
 
-		public IEnumerable<Renderable> ModifyRender(Actor self, IEnumerable<Renderable> r)
+		public IEnumerable<Renderable> ModifyRender(Actor self, WorldRenderer wr, IEnumerable<Renderable> r)
 		{
-			return IsVisible(self) ? r : Nothing;
+			return IsVisible(self.Owner.Shroud, self) ? r : Nothing;
 		}
 	}
 }
