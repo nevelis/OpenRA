@@ -37,6 +37,8 @@ Player:
 		InitialCash: 5000
 	ActorGroupProxy:
 	DeveloperMode:
+	BotScriptAI@BotScript:
+		Name:BotScript AI
 	HackyAI@EasyAI:
 		Name:Easy AI
 		BuildingCommonNames:
